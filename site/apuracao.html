@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="marca.css">
 </head>
 <body>
+  <script src="entrada.js"></script>
   <header class="topo">
     <div class="cabecalho">
       <a href="index.html"><img class="wordmark" src="marca/wordmark-op2-transparente-roxo.svg" alt="derossi.dev"></a>
@@ -34,27 +35,41 @@
     </div>
 
     <section class="bloco" aria-live="polite">
-      <h2 class="titulo">Totalização nacional</h2>
+      <div class="linha-titulo">
+        <h2 class="titulo">Totalização nacional</h2>
+        <div class="acoes-grafico">
+          <button id="atualizar-br" type="button" class="btn btn-cheio"><span>Atualizar o Brasil</span></button>
+          <div class="notas-grafico">
+            <p class="miudo" id="nac-atualizado"></p>
+            <p class="miudo" id="carimbo-pipeline"></p>
+            <p class="miudo">A página relê o arquivo nacional a cada 2 minutos, com a aba visível. O botão lê na hora.</p>
+          </div>
+        </div>
+      </div>
       <div class="tags" id="status-nacional"><span class="tag">Consultando o arquivo nacional do TSE.</span></div>
       <div class="grade-3 espaco">
         <article class="cartao">
           <p class="rotulo">Seções totalizadas</p>
           <p class="grande num" id="nac-secoes">—</p>
           <p class="miudo" id="nac-pct-secoes"></p>
-          <div class="barra espaco" id="nac-barra-secoes"></div>
         </article>
-        <article class="cartao">
+        <article class="cartao cartao-lula">
           <p class="rotulo" id="nac-rotulo-lula">Lula</p>
           <p class="grande num" id="nac-lula">—</p>
           <p class="miudo num" id="nac-lula-votos"></p>
         </article>
-        <article class="cartao">
+        <article class="cartao cartao-flavio">
           <p class="rotulo" id="nac-rotulo-flavio">Flávio</p>
           <p class="grande num" id="nac-flavio">—</p>
           <p class="miudo num" id="nac-flavio-votos"></p>
         </article>
       </div>
-      <div class="grade-2 espaco">
+      <div class="grade-3 espaco">
+        <article class="cartao" id="cartao-diferenca">
+          <p class="rotulo">Diferença de votos</p>
+          <p class="grande num" id="nac-diferenca">—</p>
+          <p class="miudo" id="nac-diferenca-nota"></p>
+        </article>
         <article class="cartao">
           <p class="rotulo">Votos válidos</p>
           <p class="grande num" id="nac-validos">—</p>
@@ -64,10 +79,8 @@
           <p class="grande num" id="nac-comparecimento">—</p>
         </article>
       </div>
-      <div class="barra espaco escondido" id="nac-barra-votos"></div>
-      <p class="miudo escondido" id="nac-legenda-votos">Vermelho: Lula. Azul: Flávio. A barra usa só os votos dos dois, entre os válidos.</p>
       <p class="kicker espaco">Brancos e nulos</p>
-      <p class="miudo">Ficam fora do quadro de Lula e Flávio. Não entram na barra acima.</p>
+      <p class="miudo">Ficam fora dos votos válidos de Lula e Flávio.</p>
       <div class="grade-2 espaco">
         <article class="cartao">
           <p class="rotulo">Brancos</p>
@@ -78,10 +91,6 @@
           <p class="grande num" id="nac-nulos">—</p>
         </article>
       </div>
-      <p class="miudo espaco" id="nac-atualizado"></p>
-      <p class="miudo" id="carimbo-pipeline"></p>
-      <p class="espaco"><button id="atualizar-br" type="button" class="btn btn-cheio">Atualizar o Brasil</button></p>
-      <p class="miudo">A página relê o arquivo nacional a cada 2 minutos, com a aba visível. O botão lê na hora.</p>
     </section>
 
     <div class="grade-filtros bloco">

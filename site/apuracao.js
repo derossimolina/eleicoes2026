@@ -147,7 +147,6 @@ function tagsDoBoletim(r) {
     "Arquivo nacional, com o exterior quando ele entra nessa soma",
     `Carimbo ${r.carimbo || "—"}`,
     `Seções totalizadas: ${fmt.format(r.st)} de ${fmt.format(r.ts)} (${pctSecoes})`,
-    `Totalização encerrada: ${r.tf === "s" ? "sim" : "não"}`,
   ];
 }
 
@@ -177,28 +176,66 @@ function semApuracaoNacional() {
   texto("nac-brancos", "sem apuração");
   texto("nac-nulos", "sem apuração");
   texto("nac-comparecimento", "sem apuração");
-  document.getElementById("nac-barra-votos").innerHTML = "";
-  document.getElementById("nac-barra-votos").classList.add("escondido");
-  document.getElementById("nac-legenda-votos").classList.add("escondido");
+}
+
+function pintarDiferenca(r) {
+  const nota = document.getElementById("nac-diferenca-nota");
+  const cartao = document.getElementById("cartao-diferenca");
+  if (cartao) cartao.classList.remove("cartao-lula", "cartao-flavio");
+  if (nota) nota.classList.remove("cor-lula", "cor-flavio");
+  if (!r) {
+    texto("nac-diferenca", "—");
+    if (nota) nota.textContent = "";
+    return;
+  }
+  if (!r.apurado) {
+    texto("nac-diferenca", "sem apuração");
+    if (nota) nota.textContent = "Os zeros do arquivo não entram como voto.";
+    return;
+  }
+  texto("nac-diferenca", fmt.format(Math.abs(r.lula.votos - r.flavio.votos)));
+  if (!nota) return;
+  if (r.lula.votos === r.flavio.votos) {
+    nota.textContent = "empate em votos";
+    return;
+  }
+  if (r.lula.votos > r.flavio.votos) {
+    nota.textContent = "Lula acima de Flávio";
+    nota.classList.add("cor-lula");
+    if (cartao) cartao.classList.add("cartao-lula");
+    return;
+  }
+  nota.textContent = "Flávio acima de Lula";
+  nota.classList.add("cor-flavio");
+  if (cartao) cartao.classList.add("cartao-flavio");
+}
+
+function pulsarNumeros() {
+  if (typeof prefereMenosMovimento !== "undefined" && prefereMenosMovimento) return;
+  ["nac-secoes", "nac-lula", "nac-flavio", "nac-diferenca", "nac-validos", "nac-comparecimento", "nac-brancos", "nac-nulos"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove("pulso");
+    void el.offsetWidth;
+    el.classList.add("pulso");
+  });
 }
 
 function pintarNacional(r) {
   if (!r) {
     texto("nac-secoes", "—");
     texto("nac-pct-secoes", "");
-    document.getElementById("nac-barra-secoes").innerHTML = "";
     semApuracaoNacional();
     corDosCandidatos(false);
     ["nac-lula", "nac-flavio", "nac-validos", "nac-brancos", "nac-nulos", "nac-comparecimento"].forEach((id) => texto(id, "—"));
     texto("nac-lula-votos", "");
     texto("nac-atualizado", "");
+    pintarDiferenca(null);
     return;
   }
   marcarStatus(tagsDoBoletim(r));
-  texto("nac-secoes", `${fmt.format(r.st)} de ${fmt.format(r.ts)}`);
-  texto("nac-pct-secoes", r.pstTexto == null ? "" : `${casas2(r.pstTexto)} das seções`);
-  const pctSecoes = r.pst == null ? 0 : Math.min(100, Math.max(0, r.pst));
-  document.getElementById("nac-barra-secoes").innerHTML = `<span class="fatia-cobertura" style="width:${pctSecoes}%"></span>`;
+  texto("nac-secoes", fmt.format(r.st));
+  texto("nac-pct-secoes", r.pstTexto == null ? `de ${fmt.format(r.ts)}` : `${casas2(r.pstTexto)} de ${fmt.format(r.ts)} seções`);
   corDosCandidatos(Boolean(r.apurado));
   if (!r.apurado) {
     texto("nac-rotulo-lula", "Lula");
@@ -215,25 +252,13 @@ function pintarNacional(r) {
     texto("nac-brancos", fmt.format(r.vb));
     texto("nac-nulos", fmt.format(r.vn));
     texto("nac-comparecimento", fmt.format(r.tv));
-    const soma = r.lula.votos + r.flavio.votos;
-    const barra = document.getElementById("nac-barra-votos");
-    if (soma) {
-      const esq = (r.lula.votos / soma) * 100;
-      barra.innerHTML = `<span class="fatia-lula" style="width:${esq}%"></span><span class="fatia-flavio" style="width:${100 - esq}%"></span>`;
-      barra.classList.remove("escondido");
-      document.getElementById("nac-legenda-votos").classList.remove("escondido");
-    } else {
-      barra.innerHTML = "";
-      barra.classList.add("escondido");
-      document.getElementById("nac-legenda-votos").classList.add("escondido");
-    }
   }
+  pintarDiferenca(r);
   texto(
     "nac-atualizado",
     `Última leitura desta página: ${horaLocal(estado.lidoEm)}. Próxima leitura automática: ${horaLocal(estado.lidoEm + INTERVALO_NACIONAL_MS)}.`
   );
-  animarBarras(document.getElementById("nac-barra-secoes"));
-  animarBarras(document.getElementById("nac-barra-votos"));
+  pulsarNumeros();
 }
 
 function corDosCandidatos(ativo) {
@@ -251,14 +276,27 @@ function ladoEstado(r) {
   return { cor: COR_FLAVIO, chave: "flavio", nome: "Flávio" };
 }
 
-function fraseEstado(uf) {
+function percentuaisEstado(uf) {
   const r = estado.porUf.get(uf);
-  const lado = ladoEstado(r);
+  if (!r || ladoEstado(r).chave === "sem") return null;
+  return {
+    lula: pctCandidato(r.lula, r.lula.votos, r.vv),
+    flavio: pctCandidato(r.flavio, r.flavio.votos, r.vv),
+  };
+}
+
+function fraseEstado(uf) {
+  const lado = ladoEstado(estado.porUf.get(uf));
   if (lado.chave === "sem") return lado.nome;
-  const lula = pctCandidato(r.lula, r.lula.votos, r.vv);
-  const flavio = pctCandidato(r.flavio, r.flavio.votos, r.vv);
-  if (lado.chave === "empate") return `empate · Lula ${lula} · Flávio ${flavio}`;
-  return `${lado.nome} na frente · Lula ${lula} · Flávio ${flavio}`;
+  const p = percentuaisEstado(uf);
+  return `Lula ${p.lula} · Flávio ${p.flavio}`;
+}
+
+function fraseEstadoHtml(uf) {
+  const lado = ladoEstado(estado.porUf.get(uf));
+  if (lado.chave === "sem") return esc(lado.nome);
+  const p = percentuaisEstado(uf);
+  return `Lula <span class="cor-lula">${esc(p.lula)}</span> · Flávio <span class="cor-flavio">${esc(p.flavio)}</span>`;
 }
 
 function estiloUf(feature) {
@@ -276,10 +314,8 @@ function estiloUf(feature) {
 function pintarEstado(uf) {
   const item = document.getElementById("uf-linha-" + uf);
   if (item) {
-    const lado = ladoEstado(estado.porUf.get(uf));
-    const classe = lado.chave === "lula" ? "cor-lula" : lado.chave === "flavio" ? "cor-flavio" : "";
     const ativa = estado.ufAtiva === uf ? " linha-ativa" : "";
-    item.innerHTML = `<button type="button" class="link-uf${ativa}" data-uf="${uf}"><span class="num">${uf}</span> <span class="${classe}">${esc(fraseEstado(uf))}</span></button>`;
+    item.innerHTML = `<button type="button" class="link-uf${ativa}" data-uf="${uf}"><span class="num">${uf}</span> <span>${fraseEstadoHtml(uf)}</span></button>`;
   }
   const layer = estado.indiceUf.get(uf);
   if (!layer) return;

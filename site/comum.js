@@ -95,21 +95,197 @@ function animarBarras(raiz) {
   });
 }
 
-function entrarNaPagina() {
-  if (prefereMenosMovimento) return;
-  document.body.classList.remove("saindo", "entrou");
-  void document.body.offsetWidth;
-  document.body.classList.add("entrou");
-}
+const EASE = "cubic-bezier(.7,0,.3,1)";
+let saindo = false;
 
 function mesmaPagina(url) {
   return url.pathname === location.pathname && url.search === location.search;
 }
 
+function gravarTransicao(rotulo) {
+  try { sessionStorage.setItem("derossi-transicao", rotulo); } catch (erro) {}
+}
+
+function lerTransicao() {
+  try {
+    const valor = sessionStorage.getItem("derossi-transicao") || "";
+    sessionStorage.removeItem("derossi-transicao");
+    return valor;
+  } catch (erro) {
+    return "";
+  }
+}
+
+function rotuloDoLink(link) {
+  const textoLink = (link.textContent || "").replace(/\s+/g, " ").trim();
+  if (textoLink) return textoLink;
+  const img = link.querySelector("img");
+  if (img && img.alt) return img.alt;
+  return "Eleições 2026";
+}
+
+function montarCortina() {
+  if (document.querySelector(".cortina")) return;
+  const cortina = document.createElement("div");
+  cortina.className = "cortina";
+  cortina.setAttribute("aria-hidden", "true");
+  cortina.innerHTML = '<div class="cortina-faixa b"></div><div class="cortina-faixa"></div><p class="cortina-titulo"></p>';
+  document.body.appendChild(cortina);
+}
+
+function limparCortina() {
+  const cortina = document.querySelector(".cortina");
+  if (!cortina) return;
+  cortina.classList.remove("ativa", "cobre");
+  cortina.querySelectorAll(".cortina-faixa, .cortina-titulo").forEach((el) => {
+    el.getAnimations().forEach((anim) => anim.cancel());
+  });
+}
+
+function animarEl(el, quadros, opcoes) {
+  return el.animate(quadros, { fill: "forwards", easing: EASE, ...opcoes });
+}
+
+function cortinaEntra(rotulo) {
+  const cortina = document.querySelector(".cortina");
+  if (!cortina) return;
+  const faixas = cortina.querySelectorAll(".cortina-faixa");
+  const titulo = cortina.querySelector(".cortina-titulo");
+  cortina.classList.add("ativa");
+  cortina.classList.remove("cobre");
+  titulo.textContent = rotulo || "Eleições 2026";
+  animarEl(faixas[0], [
+    { transform: "translateX(-120%) skewX(-12deg)" },
+    { transform: "translateX(0) skewX(-12deg)" },
+  ], { duration: 420 });
+  animarEl(faixas[1], [
+    { transform: "translateX(-120%) skewX(-12deg)" },
+    { transform: "translateX(0) skewX(-12deg)" },
+  ], { duration: 420, delay: 70 });
+  animarEl(titulo, [
+    { opacity: 0, transform: "translateX(-40px)" },
+    { opacity: 1, transform: "none" },
+  ], { duration: 360, delay: 220 });
+}
+
+function cortinaSai() {
+  const cortina = document.querySelector(".cortina");
+  if (!cortina || !cortina.classList.contains("cobre")) return;
+  cortina.dataset.saindo = "1";
+  const faixas = cortina.querySelectorAll(".cortina-faixa");
+  const titulo = cortina.querySelector(".cortina-titulo");
+  window.setTimeout(() => {
+    animarEl(titulo, [
+      { opacity: 1, transform: "none" },
+      { opacity: 0, transform: "translateX(40px)" },
+    ], { duration: 260 });
+    const frente = animarEl(faixas[1], [
+      { transform: "translateX(0) skewX(-12deg)" },
+      { transform: "translateX(130%) skewX(-12deg)" },
+    ], { duration: 460, delay: 60 });
+    animarEl(faixas[0], [
+      { transform: "translateX(0) skewX(-12deg)" },
+      { transform: "translateX(130%) skewX(-12deg)" },
+    ], { duration: 460 });
+    frente.onfinish = limparCortina;
+  }, 140);
+  window.setTimeout(limparCortina, 1400);
+}
+
+function prepararMenu() {
+  const nav = document.querySelector(".nav");
+  const cab = document.querySelector(".cabecalho");
+  if (!nav || !cab || document.querySelector(".menu-botao")) return;
+  nav.id = nav.id || "menu-paginas";
+  const botao = document.createElement("button");
+  botao.type = "button";
+  botao.className = "menu-botao";
+  botao.setAttribute("aria-expanded", "false");
+  botao.setAttribute("aria-controls", nav.id);
+  botao.setAttribute("aria-label", "Abrir o menu");
+  botao.innerHTML = "<span></span><span></span><span></span>";
+  cab.appendChild(botao);
+  const ajustarTopo = () => {
+    const topo = document.querySelector(".topo");
+    if (topo) document.documentElement.style.setProperty("--altura-topo", topo.offsetHeight + "px");
+  };
+  ajustarTopo();
+  const fechar = () => {
+    nav.classList.remove("aberto");
+    botao.setAttribute("aria-expanded", "false");
+    botao.setAttribute("aria-label", "Abrir o menu");
+    document.body.style.overflow = "";
+  };
+  botao.addEventListener("click", () => {
+    const abrir = !nav.classList.contains("aberto");
+    nav.classList.toggle("aberto", abrir);
+    botao.setAttribute("aria-expanded", abrir ? "true" : "false");
+    botao.setAttribute("aria-label", abrir ? "Fechar o menu" : "Abrir o menu");
+    document.body.style.overflow = abrir ? "hidden" : "";
+    if (abrir) ajustarTopo();
+    if (abrir) {
+      nav.querySelectorAll("a").forEach((a, i) => {
+        a.style.transitionDelay = `${60 + i * 35}ms`;
+      });
+    }
+  });
+  nav.addEventListener("click", (ev) => {
+    if (ev.target.closest("a")) fechar();
+  });
+  window.addEventListener("resize", () => {
+    ajustarTopo();
+    if (window.innerWidth > 860) fechar();
+  });
+}
+
+function prepararTarjas() {
+  document.querySelectorAll(".kicker").forEach((el) => {
+    const bruto = el.textContent.trim();
+    if (bruto.length > 46 || el.querySelector("span")) return;
+    const faixa = document.createElement("span");
+    faixa.textContent = bruto;
+    el.replaceChildren(faixa);
+    el.classList.add("tarja");
+  });
+}
+
+function revelar() {
+  if (prefereMenosMovimento) return;
+  const els = [...document.querySelectorAll(".grade-hero > div, .cartao, .linha-titulo, h2.titulo, .tags, .legenda, .tabela-wrap, .grade-filtros")]
+    .filter((el) => el.classList.contains("linha-titulo") || !el.closest(".linha-titulo"));
+  if (!els.length) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entrada) => {
+      if (!entrada.isIntersecting) return;
+      entrada.target.classList.add("vis");
+      entrada.target.addEventListener("animationend", () => {
+        entrada.target.style.animation = "none";
+      }, { once: true });
+      io.unobserve(entrada.target);
+    });
+  }, { threshold: 0.08 });
+  els.forEach((el, i) => {
+    el.classList.add("an");
+    if (el.getBoundingClientRect().top < window.innerHeight) {
+      el.style.transitionDelay = `${Math.min(i, 8) * 70}ms`;
+    }
+  });
+  window.setTimeout(() => els.forEach((el) => io.observe(el)), 30);
+}
+
 function prepararTransicao() {
-  entrarNaPagina();
+  montarCortina();
+  prepararMenu();
+  prepararTarjas();
+  revelar();
+  const veio = lerTransicao();
+  if (veio && !prefereMenosMovimento && document.querySelector(".cortina.cobre")) {
+    cortinaSai();
+  } else {
+    limparCortina();
+  }
   window.addEventListener("pageshow", (ev) => {
-    if (ev.persisted) entrarNaPagina();
+    if (ev.persisted) limparCortina();
   });
   if (prefereMenosMovimento) return;
   document.addEventListener("click", (ev) => {
@@ -125,12 +301,14 @@ function prepararTransicao() {
     }
     if (url.origin !== location.origin || mesmaPagina(url)) return;
     ev.preventDefault();
-    if (document.body.classList.contains("saindo")) return;
-    document.body.classList.remove("entrou");
-    document.body.classList.add("saindo");
+    if (saindo) return;
+    saindo = true;
+    const rotulo = rotuloDoLink(link);
+    gravarTransicao(rotulo);
+    cortinaEntra(rotulo);
     window.setTimeout(() => {
       location.href = url.href;
-    }, 280);
+    }, 600);
   });
 }
 
