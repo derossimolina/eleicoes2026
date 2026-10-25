@@ -49,8 +49,8 @@ function pintarInicio(resumo, pred) {
     return `<div class="uf-linha">
       <span>${u.uf}</span>
       <div class="barra" title="Lula ${pct(u.pct_lula)} · Flávio ${pct(u.pct_flavio)}">
-        <span class="fatia-clara" style="width:${esq}%"></span>
-        <span class="fatia-escura" style="width:${100 - esq}%"></span>
+        <span class="fatia-lula" style="width:${esq}%"></span>
+        <span class="fatia-flavio" style="width:${100 - esq}%"></span>
       </div>
       <span class="num">${sinal}${margem.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
     </div>`;
@@ -76,8 +76,8 @@ function pintarPesquisas(pred) {
       </div>
       <div>
         <div class="barra">
-          <span class="fatia-clara" style="width:${esq}%"></span>
-          <span class="fatia-escura" style="width:${100 - esq}%"></span>
+          <span class="fatia-lula" style="width:${esq}%"></span>
+          <span class="fatia-flavio" style="width:${100 - esq}%"></span>
         </div>
         <p class="miudo num">Lula ${pct(p.lula_validos)} · Flávio ${pct(p.flavio_validos)}</p>
       </div>

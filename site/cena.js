@@ -3,6 +3,8 @@ import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js";
 const REDUZ = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const ROXO = 0x660e9c;
 const ESCURO = 0x470a6d;
+const VERMELHO = 0xd21f1f;
+const AZUL = 0x1f4eae;
 
 const canvas = document.querySelector("canvas[data-cena]");
 if (canvas) iniciar(canvas);
@@ -119,8 +121,8 @@ function materialSolido(cor) {
 }
 
 function montarEstimativa(grupo, api) {
-  const clara = grade(4, 4, materialSolido(ROXO), () => 1.6);
-  const escura = grade(4, 4, materialSolido(ESCURO), () => 1.7);
+  const clara = grade(4, 4, materialSolido(VERMELHO), () => 1.6);
+  const escura = grade(4, 4, materialSolido(AZUL), () => 1.7);
   clara.position.x = -1.6;
   escura.position.x = 1.6;
   grupo.add(clara, escura);

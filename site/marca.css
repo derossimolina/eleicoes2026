@@ -4,6 +4,10 @@
   --linha: rgba(102, 14, 156, 0.22);
   --nevoa: rgba(102, 14, 156, 0.06);
   --clara: #e7d4f4;
+  --vermelho: #d21f1f;
+  --azul: #1f4eae;
+  --empate: #c8c2ba;
+  --sem: #f3f0f4;
   color-scheme: light;
 }
 
@@ -164,15 +168,23 @@ h2.titulo { font-size: clamp(2rem, 4vw, 2.8rem); }
 .linha-acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 
 .barra { display: flex; height: 0.75rem; overflow: hidden; background: var(--nevoa); }
-.fatia-clara,
-.fatia-escura {
+.fatia-lula,
+.fatia-flavio,
+.fatia-cobertura {
   display: block;
   height: 100%;
   width: 0;
   transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.fatia-clara { background: var(--clara); }
-.fatia-escura { background: var(--roxo); }
+.fatia-lula { background: var(--vermelho); }
+.fatia-flavio { background: var(--azul); }
+.fatia-cobertura { background: var(--roxo); }
+.cor-lula { color: var(--vermelho); }
+.cor-flavio { color: var(--azul); }
+.swatch-lula { background: var(--vermelho); }
+.swatch-flavio { background: var(--azul); }
+.swatch-empate { background: var(--empate); }
+.swatch-sem { background: var(--sem); }
 .uf-linha {
   display: grid;
   grid-template-columns: 2.5rem 1fr 4.5rem;
@@ -230,8 +242,32 @@ h2.titulo { font-size: clamp(2rem, 4vw, 2.8rem); }
 .link-mun { min-height: 40px; padding: 0; border: 0; font-weight: 600; background: transparent; }
 .busca-item:hover, .busca-item:focus-visible, .link-mun:hover, .link-mun:focus-visible { background: var(--nevoa); }
 
-.mapa { height: 70vh; min-height: 420px; background: #f4eafb; }
-.leaflet-container { background: #f4eafb; font-family: Inter, Arial, sans-serif; }
+.mapa { height: 70vh; min-height: 420px; background: var(--sem); }
+.mapa-uf { height: 34rem; min-height: 320px; }
+.leaflet-container { background: var(--sem); font-family: Inter, Arial, sans-serif; }
+.grade-mapa-uf { display: grid; gap: 1rem; align-items: start; }
+@media (min-width: 900px) {
+  .grade-mapa-uf { grid-template-columns: 1.45fr 0.85fr; }
+}
+.lista-uf { list-style: none; max-height: 34rem; margin: 0.75rem 0 0; padding: 0; overflow: auto; }
+.link-uf {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.4rem 0.25rem;
+  border: 0;
+  border-bottom: 1px solid var(--linha);
+  background: #fff;
+  color: var(--escuro);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.link-uf .num { flex: 0 0 2rem; font-weight: 700; }
+.link-uf.linha-ativa { background: var(--nevoa); }
 .leaflet-interactive {
   transition: fill 0.7s ease, fill-opacity 0.9s ease, stroke 0.35s ease, stroke-width 0.35s ease;
 }
@@ -273,8 +309,9 @@ h2.titulo { font-size: clamp(2rem, 4vw, 2.8rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fatia-clara,
-  .fatia-escura,
+  .fatia-lula,
+  .fatia-flavio,
+  .fatia-cobertura,
   .leaflet-interactive {
     transition: none;
   }

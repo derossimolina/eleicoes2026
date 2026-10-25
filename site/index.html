@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+ExtraCondensed:ital,wght@1,900&family=Inter:wght@400;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="marca.css">
 </head>
 <body>
@@ -39,13 +40,13 @@
     <div class="grade-3 bloco">
       <article class="cartao">
         <p class="rotulo">Média, votos válidos</p>
-        <p class="grande num"><span id="pct-flavio">—</span> Flávio</p>
-        <p class="grande num"><span id="pct-lula">—</span> Lula</p>
+        <p class="grande num"><span id="pct-flavio" class="cor-flavio">—</span> Flávio</p>
+        <p class="grande num"><span id="pct-lula" class="cor-lula">—</span> Lula</p>
       </article>
       <article class="cartao">
         <p class="rotulo">Chance estimada</p>
-        <p class="grande num">Flávio <span id="prob-flavio">—</span></p>
-        <p class="miudo num">Lula <span id="prob-lula">—</span></p>
+        <p class="grande num">Flávio <span id="prob-flavio" class="cor-flavio">—</span></p>
+        <p class="miudo num">Lula <span id="prob-lula" class="cor-lula">—</span></p>
         <p class="miudo">Com erro de eleição de 2 pontos, além da margem de cada pesquisa. Previsão não é certeza.</p>
       </article>
       <article class="cartao">
@@ -92,17 +93,31 @@
         </article>
       </div>
       <div class="barra espaco escondido" id="nac-barra-votos"></div>
-      <p class="miudo escondido" id="nac-legenda-votos">Parte clara: Lula. Parte roxa: Flávio. A barra usa só os votos dos dois, entre os válidos.</p>
+      <p class="miudo escondido" id="nac-legenda-votos">Vermelho: Lula. Azul: Flávio. A barra usa só os votos dos dois, entre os válidos.</p>
+      <div class="grade-mapa-uf espaco">
+        <div id="mapa-uf" class="mapa mapa-uf" role="region" aria-label="Mapa do Brasil por estado no 2º turno"></div>
+        <div>
+          <p class="rotulo">Quem está na frente em cada estado</p>
+          <ul class="legenda">
+            <li><span class="swatch swatch-lula"></span> Lula na frente</li>
+            <li><span class="swatch swatch-flavio"></span> Flávio na frente</li>
+            <li><span class="swatch swatch-empate"></span> Empate entre os dois</li>
+            <li><span class="swatch swatch-sem"></span> Sem apuração</li>
+          </ul>
+          <p class="miudo espaco" id="mapa-uf-nota">Cada estado usa o arquivo da própria UF no TSE. Sem seção totalizada, a cor não indica vencedor.</p>
+          <ul id="lista-uf" class="lista-uf"></ul>
+        </div>
+      </div>
       <p class="miudo espaco" id="nac-atualizado"></p>
       <p class="miudo" id="carimbo-pipeline"></p>
       <p class="espaco"><button id="atualizar-br" type="button" class="btn btn-cheio">Atualizar o Brasil</button></p>
-      <p class="miudo">A página relê o arquivo nacional a cada 2 minutos, com a aba visível. O botão lê na hora.</p>
+      <p class="miudo">A página relê o Brasil e os 27 estados a cada 2 minutos, com a aba visível. O botão lê na hora.</p>
       <p class="espaco"><a href="apuracao.html">Abrir a apuração por município</a></p>
     </section>
 
     <section class="bloco">
       <h2 class="titulo">As 16 pesquisas da média</h2>
-      <p class="lede">Cada barra reparte a fatia dos dois nomes. A parte clara é Lula e a parte roxa é Flávio. O peso à direita já desconta a margem e a idade do campo até 25/10.</p>
+      <p class="lede">Cada barra reparte a fatia dos dois nomes. Vermelho é Lula e azul é Flávio. O peso à direita já desconta a margem e a idade do campo até 25/10.</p>
       <div id="lista-pesquisas" class="espaco" style="display:grid;gap:0.75rem"></div>
     </section>
 
@@ -112,12 +127,12 @@
       <div class="grade-3 espaco">
         <article class="cartao">
           <p class="rotulo">Flávio</p>
-          <p class="grande num" id="t1-flavio">—</p>
+          <p class="grande num cor-flavio" id="t1-flavio">—</p>
           <p class="miudo num" id="t1-flavio-votos"></p>
         </article>
         <article class="cartao">
           <p class="rotulo">Lula</p>
-          <p class="grande num" id="t1-lula">—</p>
+          <p class="grande num cor-lula" id="t1-lula">—</p>
           <p class="miudo num" id="t1-lula-votos"></p>
         </article>
         <article class="cartao">
@@ -140,6 +155,7 @@
       <p class="fontes">Fontes: TSE, dados abertos e pesquisas com registro. A estimativa mostra método, margem e incerteza. Não é apoio a candidato ou partido.</p>
     </div>
   </footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="comum.js"></script>
   <script src="apuracao.js"></script>
   <script src="estimativa.js"></script>

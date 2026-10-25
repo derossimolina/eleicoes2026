@@ -79,9 +79,9 @@ const prefereMenosMovimento = window.matchMedia("(prefers-reduced-motion: reduce
 
 function animarBarras(raiz) {
   if (!raiz) return;
-  const fatias = raiz.matches(".fatia-clara, .fatia-escura")
+  const fatias = raiz.matches(".fatia-lula, .fatia-flavio, .fatia-cobertura")
     ? [raiz]
-    : raiz.querySelectorAll(".fatia-clara, .fatia-escura");
+    : raiz.querySelectorAll(".fatia-lula, .fatia-flavio, .fatia-cobertura");
   fatias.forEach((el) => {
     const alvo = el.style.width;
     if (!alvo) return;

@@ -28,7 +28,7 @@
       <div>
         <p class="kicker">Municípios · 1º turno de 2026 e 2º turnos anteriores</p>
         <h1 class="titulo">Mapa municipal</h1>
-        <p class="lede">Escala de um roxo só. Mais escuro, maior fatia de Flávio em 2026, ou de Bolsonaro em 2022 e 2018, entre os dois nomes. Mais claro, maior fatia de Lula ou de Haddad. Não é cor de partido. O 2º turno de 2026 não é pintado aqui.</p>
+        <p class="lede">Vermelho é Lula ou Haddad. Azul é Flávio ou Bolsonaro. Quanto mais forte a cor, maior a fatia daquele nome entre os dois. O branco fica no meio. O 2º turno de 2026, estado por estado, está na página inicial.</p>
       </div>
       <div class="palco"><canvas id="cena" data-cena="mapa" data-estado="iniciando" aria-hidden="true"></canvas></div>
     </div>
@@ -42,12 +42,12 @@
         <label class="rotulo espaco" for="busca-mun">Município</label>
         <input id="busca-mun" class="campo" type="search" placeholder="Nome ou UF" autocomplete="off">
         <ul id="busca-resultado" class="busca-lista"></ul>
-        <p class="miudo espaco" id="legenda-texto">Escuro: Flávio. Claro: Lula. 1º turno de 2026.</p>
+        <p class="miudo espaco" id="legenda-texto">Vermelho: Lula. Azul: Flávio. 1º turno de 2026.</p>
         <ul class="legenda">
-          <li><span class="swatch" style="background:#f3e8fa"></span> Mais claro, o nome da esquerda</li>
-          <li><span class="swatch" style="background:#9d79b3"></span> Fatias próximas</li>
-          <li><span class="swatch" style="background:#470a6d"></span> Mais escuro, o nome da direita</li>
-          <li><span class="swatch" style="background:#ffffff"></span> Sem dado</li>
+          <li><span class="swatch swatch-lula"></span> Mais vermelho, Lula ou Haddad</li>
+          <li><span class="swatch" style="background:#ffffff"></span> Fatias próximas</li>
+          <li><span class="swatch swatch-flavio"></span> Mais azul, Flávio ou Bolsonaro</li>
+          <li><span class="swatch swatch-sem"></span> Sem dado</li>
         </ul>
       </div>
       <div id="mapa-folha" class="mapa" role="region" aria-label="Mapa do Brasil por município"></div>
@@ -64,7 +64,7 @@
         <img class="icone-d" src="marca/avatar-d-barra-transparente-branco.svg" alt="">
       </div>
       <p class="direitos">Copyright 2026 derossi.dev - Todos os direitos reservados</p>
-      <p class="fontes">Fontes: TSE e malha municipal. A cor é uma escala de um roxo, não uma bandeira. Não é apoio a candidato ou partido.</p>
+      <p class="fontes">Fontes: TSE e malha municipal. Vermelho é Lula ou Haddad. Azul é Flávio ou Bolsonaro. Não é apoio a candidato ou partido.</p>
     </div>
   </footer>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

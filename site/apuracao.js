@@ -12,6 +12,11 @@ const estado = {
   lendoNacional: false,
   lidos: new Map(),
   controle: null,
+  porUf: new Map(),
+  indiceUf: new Map(),
+  mapaUf: null,
+  lendoMapa: false,
+  ufAtiva: "",
 };
 
 function quandoCena(fn) {
@@ -33,6 +38,10 @@ function esperar(ms, signal) {
 }
 
 const TSE_DADOS = "https://resultados.tse.jus.br/oficial/ele2026/6258/dados";
+const COR_LULA = "#D21F1F";
+const COR_FLAVIO = "#1F4EAE";
+const COR_EMPATE = "#C8C2BA";
+const COR_SEM = "#F3F0F4";
 
 function urlOficial(caminho) {
   const partes = String(caminho).split("/").filter(Boolean);
@@ -162,6 +171,7 @@ function pintarNacional(r) {
     texto("nac-pct-secoes", "");
     document.getElementById("nac-barra-secoes").innerHTML = "";
     semApuracaoNacional();
+    corDosCandidatos(false);
     ["nac-lula", "nac-flavio", "nac-validos", "nac-brancos", "nac-comparecimento"].forEach((id) => texto(id, "—"));
     texto("nac-lula-votos", "");
     texto("nac-atualizado", "");
@@ -174,7 +184,8 @@ function pintarNacional(r) {
   texto("nac-secoes", `${fmt.format(r.st)} de ${fmt.format(r.ts)}`);
   texto("nac-pct-secoes", r.pstTexto == null ? "" : `${casas2(r.pstTexto)} das seções`);
   const pctSecoes = r.pst == null ? 0 : Math.min(100, Math.max(0, r.pst));
-  document.getElementById("nac-barra-secoes").innerHTML = `<span class="fatia-escura" style="width:${pctSecoes}%"></span>`;
+  document.getElementById("nac-barra-secoes").innerHTML = `<span class="fatia-cobertura" style="width:${pctSecoes}%"></span>`;
+  corDosCandidatos(Boolean(r.apurado));
   if (!r.apurado) {
     texto("nac-rotulo-lula", "Lula");
     texto("nac-rotulo-flavio", "Flávio");
@@ -194,7 +205,7 @@ function pintarNacional(r) {
     const barra = document.getElementById("nac-barra-votos");
     if (soma) {
       const esq = (r.lula.votos / soma) * 100;
-      barra.innerHTML = `<span class="fatia-clara" style="width:${esq}%"></span><span class="fatia-escura" style="width:${100 - esq}%"></span>`;
+      barra.innerHTML = `<span class="fatia-lula" style="width:${esq}%"></span><span class="fatia-flavio" style="width:${100 - esq}%"></span>`;
       barra.classList.remove("escondido");
       document.getElementById("nac-legenda-votos").classList.remove("escondido");
     } else {
@@ -209,6 +220,127 @@ function pintarNacional(r) {
   );
   animarBarras(document.getElementById("nac-barra-secoes"));
   animarBarras(document.getElementById("nac-barra-votos"));
+}
+
+function corDosCandidatos(ativo) {
+  const lula = document.getElementById("nac-lula");
+  const flavio = document.getElementById("nac-flavio");
+  if (lula) lula.classList.toggle("cor-lula", ativo);
+  if (flavio) flavio.classList.toggle("cor-flavio", ativo);
+}
+
+function ladoEstado(r) {
+  if (!r || r.erro) return { cor: COR_SEM, chave: "sem", nome: "sem resposta" };
+  if (!r.apurado) return { cor: COR_SEM, chave: "sem", nome: "sem apuração" };
+  if (r.lula.votos === r.flavio.votos) return { cor: COR_EMPATE, chave: "empate", nome: "empate" };
+  if (r.lula.votos > r.flavio.votos) return { cor: COR_LULA, chave: "lula", nome: "Lula" };
+  return { cor: COR_FLAVIO, chave: "flavio", nome: "Flávio" };
+}
+
+function fraseEstado(uf) {
+  const r = estado.porUf.get(uf);
+  const lado = ladoEstado(r);
+  if (lado.chave === "sem") return lado.nome;
+  const lula = pctCandidato(r.lula, r.lula.votos, r.vv);
+  const flavio = pctCandidato(r.flavio, r.flavio.votos, r.vv);
+  if (lado.chave === "empate") return `empate · Lula ${lula} · Flávio ${flavio}`;
+  return `${lado.nome} na frente · Lula ${lula} · Flávio ${flavio}`;
+}
+
+function estiloUf(feature) {
+  const uf = feature.properties.uf;
+  const lado = ladoEstado(estado.porUf.get(uf));
+  const ativo = estado.ufAtiva === uf;
+  return {
+    color: ativo ? "#1a1024" : "rgba(26,16,36,0.4)",
+    weight: ativo ? 2.4 : 0.8,
+    fillColor: lado.cor,
+    fillOpacity: 1,
+  };
+}
+
+function pintarEstado(uf) {
+  const item = document.getElementById("uf-linha-" + uf);
+  if (item) {
+    const lado = ladoEstado(estado.porUf.get(uf));
+    const classe = lado.chave === "lula" ? "cor-lula" : lado.chave === "flavio" ? "cor-flavio" : "";
+    const ativa = estado.ufAtiva === uf ? " linha-ativa" : "";
+    item.innerHTML = `<button type="button" class="link-uf${ativa}" data-uf="${uf}"><span class="num">${uf}</span> <span class="${classe}">${esc(fraseEstado(uf))}</span></button>`;
+  }
+  const layer = estado.indiceUf.get(uf);
+  if (!layer) return;
+  layer.setStyle(estiloUf(layer.feature));
+  const r = estado.porUf.get(uf);
+  const extra = r && r.apurado ? ` ${fmt.format(r.st)} de ${fmt.format(r.ts)} seções.` : "";
+  layer.setTooltipContent(`${uf} · ${fraseEstado(uf)}.${extra}`);
+}
+
+function escolherEstado(uf) {
+  estado.ufAtiva = uf;
+  UFS.forEach(pintarEstado);
+}
+
+function garantirListaUf() {
+  const lista = document.getElementById("lista-uf");
+  if (!lista || lista.childElementCount) return;
+  lista.innerHTML = UFS.map((uf) => `<li id="uf-linha-${uf}"></li>`).join("");
+  UFS.forEach(pintarEstado);
+  lista.addEventListener("click", (ev) => {
+    const botao = ev.target.closest("button");
+    if (!botao) return;
+    escolherEstado(botao.dataset.uf);
+  });
+}
+
+async function montarMapaUf() {
+  garantirListaUf();
+  if (typeof L === "undefined") {
+    texto("mapa-uf-nota", "O desenho do mapa não carregou. A lista ao lado segue com cada estado.");
+    return;
+  }
+  const geo = await lerJson("dados/ufs.geojson");
+  const mapa = L.map("mapa-uf", { scrollWheelZoom: false, attributionControl: false });
+  const camada = L.geoJSON(geo, {
+    style: estiloUf,
+    onEachFeature(feature, layer) {
+      const uf = feature.properties.uf;
+      estado.indiceUf.set(uf, layer);
+      layer.bindTooltip(`${uf} · sem apuração`, { sticky: true });
+      layer.on("click", () => escolherEstado(uf));
+    },
+  }).addTo(mapa);
+  mapa.fitBounds(camada.getBounds(), { padding: [8, 8] });
+  estado.mapaUf = mapa;
+  requestAnimationFrame(() => mapa.invalidateSize());
+}
+
+async function atualizarMapaUf() {
+  if (!document.getElementById("mapa-uf") || estado.lendoMapa) return;
+  estado.lendoMapa = true;
+  texto("mapa-uf-nota", "Lendo o arquivo de cada estado no TSE.");
+  try {
+    await Promise.all(UFS.map(async (uf) => {
+      const signal = typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(20000) : undefined;
+      try {
+        const dados = await lerTse(`/tse/uf/${uf.toLowerCase()}`, signal);
+        estado.porUf.set(uf, resumir(dados));
+      } catch (erro) {
+        estado.porUf.set(uf, { erro: true, apurado: false });
+        console.error(erro);
+      }
+      pintarEstado(uf);
+    }));
+    const apurados = UFS.filter((uf) => {
+      const r = estado.porUf.get(uf);
+      return r && r.apurado;
+    }).length;
+    texto(
+      "mapa-uf-nota",
+      `${fmt.format(apurados)} de 27 estados com seção totalizada. Onde o TSE ainda está em zero, o mapa não pinta vencedor.`
+    );
+  } finally {
+    estado.lendoMapa = false;
+  }
 }
 
 function pintarCobertura(r) {
@@ -251,6 +383,7 @@ async function atualizarNacional() {
   }
   estado.lendoNacional = false;
   liberarUf();
+  if (document.getElementById("mapa-uf")) atualizarMapaUf();
 }
 
 function fatia(votos, validos) {
@@ -487,6 +620,15 @@ async function iniciarSoNacional() {
     }
   } catch (erro) {
     console.error(erro);
+  }
+  if (document.getElementById("mapa-uf")) {
+    try {
+      await montarMapaUf();
+    } catch (erro) {
+      console.error(erro);
+      texto("mapa-uf-nota", "O desenho do mapa não carregou. A lista ao lado segue com cada estado.");
+      garantirListaUf();
+    }
   }
   await atualizarNacional();
   agendarNacional();

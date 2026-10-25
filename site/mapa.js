@@ -1,17 +1,19 @@
 const estado = { camada: "26", selecionado: null, camadaGeo: null, revelado: false };
 
 const LEGENDA = {
-  "26": "Escuro: Flávio. Claro: Lula. 1º turno de 2026.",
-  "22": "Escuro: Bolsonaro. Claro: Lula. 2º turno de 2022.",
-  "18": "Escuro: Bolsonaro. Claro: Haddad. 2º turno de 2018.",
+  "26": "Vermelho: Lula. Azul: Flávio. 1º turno de 2026.",
+  "22": "Vermelho: Lula. Azul: Bolsonaro. 2º turno de 2022.",
+  "18": "Vermelho: Haddad. Azul: Bolsonaro. 2º turno de 2018.",
 };
 
 function tom(fatiaDireita) {
   const t = Math.min(1, Math.max(0, fatiaDireita));
-  const a = [243, 232, 250];
-  const b = [71, 10, 109];
-  const c = a.map((v, i) => Math.round(v + (b[i] - v) * t));
-  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+  const vermelho = [210, 33, 33];
+  const branco = [255, 255, 255];
+  const azul = [31, 78, 174];
+  const misturar = (a, b, u) => a.map((v, i) => Math.round(v + (b[i] - v) * u));
+  const cor = t < 0.5 ? misturar(vermelho, branco, t / 0.5) : misturar(branco, azul, (t - 0.5) / 0.5);
+  return `rgb(${cor[0]}, ${cor[1]}, ${cor[2]})`;
 }
 
 function parDaCamada(p) {
@@ -31,7 +33,7 @@ function corDe(p) {
 function estilo(feature) {
   const ativo = estado.selecionado && feature.properties.ibge === estado.selecionado;
   return {
-    color: ativo ? "#470A6D" : "rgba(71,10,109,0.45)",
+    color: ativo ? "#1a1024" : "rgba(26,16,36,0.4)",
     weight: ativo ? 2 : 0.4,
     fillColor: corDe(feature.properties),
     fillOpacity: estado.revelado ? 1 : 0,
