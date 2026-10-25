@@ -62,6 +62,7 @@ function pintarInicio(resumo, pred) {
       <span class="num">${sinal}${margem.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
     </div>`;
   }).join("");
+  animarBarras(caixa);
 }
 
 function dia(iso) {
@@ -90,6 +91,7 @@ function pintarPesquisas(pred) {
       <p class="num">peso ${Math.round(p.peso_relativo * 1000) / 10}%</p>
     </article>`;
   }).join("");
+  animarBarras(lista);
 }
 
 carregar();

@@ -1,6 +1,6 @@
 const UFS = ["AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"];
 const URL_BR = "https://resultados.tse.jus.br/oficial/ele2026/6258/dados/br/br-c0001-e006258-u.json";
-const INTERVALO_NACIONAL_MS = 30 * 60 * 1000;
+const INTERVALO_NACIONAL_MS = 2 * 60 * 1000;
 
 const estado = {
   municipios: [],
@@ -168,6 +168,8 @@ function pintarNacional(r) {
     "nac-atualizado",
     `Última leitura desta página: ${horaLocal(estado.lidoEm)}. Próxima leitura automática: ${horaLocal(estado.lidoEm + INTERVALO_NACIONAL_MS)}.`
   );
+  animarBarras(document.getElementById("nac-barra-secoes"));
+  animarBarras(document.getElementById("nac-barra-votos"));
 }
 
 function pintarCobertura(r) {

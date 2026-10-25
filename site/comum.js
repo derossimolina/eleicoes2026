@@ -45,3 +45,64 @@ function esc(valor) {
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   }[c]));
 }
+
+const prefereMenosMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function animarBarras(raiz) {
+  if (!raiz) return;
+  const fatias = raiz.matches(".fatia-clara, .fatia-escura")
+    ? [raiz]
+    : raiz.querySelectorAll(".fatia-clara, .fatia-escura");
+  fatias.forEach((el) => {
+    const alvo = el.style.width;
+    if (!alvo) return;
+    el.dataset.alvo = alvo;
+    if (prefereMenosMovimento) return;
+    el.style.transition = "none";
+    el.style.width = "0%";
+    void el.offsetWidth;
+    el.style.transition = "";
+    el.style.width = alvo;
+  });
+}
+
+function entrarNaPagina() {
+  if (prefereMenosMovimento) return;
+  document.body.classList.remove("saindo", "entrou");
+  void document.body.offsetWidth;
+  document.body.classList.add("entrou");
+}
+
+function mesmaPagina(url) {
+  return url.pathname === location.pathname && url.search === location.search;
+}
+
+function prepararTransicao() {
+  entrarNaPagina();
+  window.addEventListener("pageshow", (ev) => {
+    if (ev.persisted) entrarNaPagina();
+  });
+  if (prefereMenosMovimento) return;
+  document.addEventListener("click", (ev) => {
+    if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+    const link = ev.target.closest("a[href]");
+    if (!link || link.hasAttribute("download")) return;
+    if (link.target && link.target !== "_self") return;
+    let url;
+    try {
+      url = new URL(link.href, location.href);
+    } catch (erro) {
+      return;
+    }
+    if (url.origin !== location.origin || mesmaPagina(url)) return;
+    ev.preventDefault();
+    if (document.body.classList.contains("saindo")) return;
+    document.body.classList.remove("entrou");
+    document.body.classList.add("saindo");
+    window.setTimeout(() => {
+      location.href = url.href;
+    }, 280);
+  });
+}
+
+prepararTransicao();

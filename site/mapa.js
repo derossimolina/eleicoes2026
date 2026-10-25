@@ -1,4 +1,4 @@
-const estado = { camada: "26", selecionado: null, camadaGeo: null };
+const estado = { camada: "26", selecionado: null, camadaGeo: null, revelado: false };
 
 const LEGENDA = {
   "26": "Escuro: Flávio. Claro: Lula. 1º turno de 2026.",
@@ -34,8 +34,41 @@ function estilo(feature) {
     color: ativo ? "#470A6D" : "rgba(71,10,109,0.45)",
     weight: ativo ? 2 : 0.4,
     fillColor: corDe(feature.properties),
-    fillOpacity: 1,
+    fillOpacity: estado.revelado ? 1 : 0,
   };
+}
+
+function pintarCamada() {
+  if (!estado.camadaGeo) return;
+  estado.camadaGeo.eachLayer((layer) => {
+    const s = estilo(layer.feature);
+    layer.options.fillColor = s.fillColor;
+    layer.options.fillOpacity = s.fillOpacity;
+    layer.options.color = s.color;
+    layer.options.weight = s.weight;
+    const el = layer.getElement();
+    if (!el) return;
+    el.style.fill = s.fillColor;
+    el.style.fillOpacity = String(s.fillOpacity);
+    el.style.stroke = s.color;
+    el.style.strokeWidth = s.weight + "px";
+  });
+}
+
+function revelarMapa() {
+  if (prefereMenosMovimento) {
+    estado.revelado = true;
+    pintarCamada();
+    return;
+  }
+  estado.revelado = false;
+  pintarCamada();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      estado.revelado = true;
+      pintarCamada();
+    });
+  });
 }
 
 function bloco(titulo, a, b, va, vb, validos, nomeA, nomeB) {
@@ -46,7 +79,9 @@ function bloco(titulo, a, b, va, vb, validos, nomeA, nomeB) {
 }
 
 function fichaDe(p) {
-  document.getElementById("ficha").innerHTML = `
+  const ficha = document.getElementById("ficha");
+  ficha.classList.remove("ficha-entra");
+  ficha.innerHTML = `
     <p class="rotulo">${p.uf || "Malha"}</p>
     <h2 class="titulo" style="font-size:2.2rem">${esc(p.nm)}</h2>
     ${p.v26 == null ? "<p class='espaco'>Sem voto de presidente neste polígono.</p>" : ""}
@@ -54,13 +89,17 @@ function fichaDe(p) {
     ${bloco("2022, 2º turno", p.pl22, p.pb22, p.l22, p.b22, p.v22, "Lula", "Bolsonaro")}
     ${bloco("2018, 2º turno", p.ph18, p.pb18, p.h18, p.b18, p.v18, "Haddad", "Bolsonaro")}
     <p class="miudo espaco">IBGE ${p.ibge}. <a href="apuracao.html">Apuração ao vivo do 2º turno</a></p>`;
+  if (!prefereMenosMovimento) {
+    void ficha.offsetWidth;
+    ficha.classList.add("ficha-entra");
+  }
 }
 
 function selecionar(ibge, voar) {
   estado.selecionado = ibge;
   const layer = estado.indice.get(ibge);
   if (!layer) return;
-  estado.camadaGeo.setStyle(estilo);
+  pintarCamada();
   fichaDe(layer.feature.properties);
   if (voar) estado.camadaGeo._map.fitBounds(layer.getBounds(), { maxZoom: 8 });
 }
@@ -76,6 +115,7 @@ function montarMapa(geo) {
     },
   }).addTo(mapa);
   estado.indice = indice;
+  revelarMapa();
   document.querySelectorAll(".camada").forEach((botao) => {
     botao.addEventListener("click", () => {
       estado.camada = botao.dataset.camada;
@@ -83,7 +123,7 @@ function montarMapa(geo) {
         b.setAttribute("aria-pressed", b === botao ? "true" : "false");
       });
       texto("legenda-texto", LEGENDA[estado.camada]);
-      estado.camadaGeo.setStyle(estilo);
+      pintarCamada();
     });
   });
   const busca = document.getElementById("busca-mun");
