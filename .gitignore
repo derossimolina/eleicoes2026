@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Zips do TSE e a malha original passam de 100 MB. O GitHub recusa o push.
+# O site usa site/dados/, gerado por 02_exportar_site.py.
+data/raw/tse/*.zip
+data/raw/tse/malha_municipios.zip

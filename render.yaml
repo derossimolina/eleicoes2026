@@ -1,0 +1,9 @@
+# Blueprint do Render. O dashboard é a pasta site/, sem build de frontend.
+# Não reescreva /* para index.html: dados/*.json e o GeoJSON precisam ser arquivos.
+services:
+  - type: web
+    name: eleicoes2026
+    runtime: static
+    buildCommand: "echo site pronto"
+    staticPublishPath: site
+    pullRequestPreviewsEnabled: true
