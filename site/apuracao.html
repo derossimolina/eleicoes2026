@@ -32,11 +32,48 @@
       <div class="palco"><canvas id="cena" data-cena="apuracao" data-estado="iniciando" aria-hidden="true"></canvas></div>
     </div>
 
-    <article class="aviso bloco" aria-live="polite">
-      <p id="status-nacional">Consultando o arquivo nacional do TSE.</p>
-      <p class="miudo espaco" id="carimbo-pipeline"></p>
+    <section class="bloco" aria-live="polite">
+      <h2 class="titulo">Totalização nacional</h2>
+      <p class="lede" id="status-nacional">Consultando o arquivo nacional do TSE.</p>
+      <div class="grade-3 espaco">
+        <article class="cartao">
+          <p class="rotulo">Seções totalizadas</p>
+          <p class="grande num" id="nac-secoes">—</p>
+          <p class="miudo" id="nac-pct-secoes"></p>
+          <div class="barra espaco" id="nac-barra-secoes"></div>
+        </article>
+        <article class="cartao">
+          <p class="rotulo" id="nac-rotulo-lula">Lula</p>
+          <p class="grande num" id="nac-lula">—</p>
+          <p class="miudo num" id="nac-lula-votos"></p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo" id="nac-rotulo-flavio">Flávio</p>
+          <p class="grande num" id="nac-flavio">—</p>
+          <p class="miudo num" id="nac-flavio-votos"></p>
+        </article>
+      </div>
+      <div class="grade-3 espaco">
+        <article class="cartao">
+          <p class="rotulo">Votos válidos</p>
+          <p class="grande num" id="nac-validos">—</p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo">Brancos</p>
+          <p class="grande num" id="nac-brancos">—</p>
+          <p class="miudo" id="nac-nulos"></p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo">Comparecimento</p>
+          <p class="grande num" id="nac-comparecimento">—</p>
+        </article>
+      </div>
+      <div class="barra espaco escondido" id="nac-barra-votos"></div>
+      <p class="miudo escondido" id="nac-legenda-votos">Parte clara: Lula. Parte roxa: Flávio. A barra usa só os votos dos dois, entre os válidos.</p>
+      <p class="miudo espaco" id="nac-atualizado"></p>
+      <p class="miudo" id="carimbo-pipeline"></p>
       <p class="espaco"><button id="atualizar-br" type="button" class="btn btn-cheio">Atualizar o Brasil</button></p>
-    </article>
+    </section>
 
     <div class="grade-filtros bloco">
       <label>UF

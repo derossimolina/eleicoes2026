@@ -1,5 +1,6 @@
 const UFS = ["AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"];
 const URL_BR = "https://resultados.tse.jus.br/oficial/ele2026/6258/dados/br/br-c0001-e006258-u.json";
+const INTERVALO_NACIONAL_MS = 30 * 60 * 1000;
 
 const estado = {
   municipios: [],
@@ -7,6 +8,8 @@ const estado = {
   uf: "",
   atual: null,
   nacional: null,
+  lidoEm: 0,
+  lendoNacional: false,
   lidos: new Map(),
   controle: null,
 };
@@ -94,8 +97,77 @@ function fraseVotos(r) {
   return ` ${r.lula.nome} ${fmt.format(r.lula.votos)} (${pct(vl)}). ${r.flavio.nome} ${fmt.format(r.flavio.votos)} (${pct(vf)}). Válidos ${fmt.format(r.vv)}. Brancos ${fmt.format(r.vb)}. Nulos ${fmt.format(r.vn)}. Comparecimento ${fmt.format(r.tv)}.`;
 }
 
-function textoNacional(r) {
-  return `Arquivo nacional do TSE. ${fraseSecoes(r)}${fraseVotos(r)} Fonte: ${URL_BR}.`;
+function horaLocal(ms) {
+  return new Date(ms).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+}
+
+function semApuracaoNacional() {
+  texto("nac-lula", "sem apuração");
+  texto("nac-lula-votos", "Os zeros do arquivo não entram como voto.");
+  texto("nac-flavio", "sem apuração");
+  texto("nac-flavio-votos", "");
+  texto("nac-validos", "sem apuração");
+  texto("nac-brancos", "sem apuração");
+  texto("nac-nulos", "");
+  texto("nac-comparecimento", "sem apuração");
+  document.getElementById("nac-barra-votos").innerHTML = "";
+  document.getElementById("nac-barra-votos").classList.add("escondido");
+  document.getElementById("nac-legenda-votos").classList.add("escondido");
+}
+
+function pintarNacional(r) {
+  if (!r) {
+    texto("nac-secoes", "—");
+    texto("nac-pct-secoes", "");
+    document.getElementById("nac-barra-secoes").innerHTML = "";
+    semApuracaoNacional();
+    ["nac-lula", "nac-flavio", "nac-validos", "nac-brancos", "nac-comparecimento"].forEach((id) => texto(id, "—"));
+    texto("nac-lula-votos", "");
+    texto("nac-atualizado", "");
+    return;
+  }
+  texto(
+    "status-nacional",
+    `Arquivo nacional do TSE, com o exterior quando ele entra nessa soma. ${fraseSecoes(r)}${fraseVotos(r)} Fonte: ${URL_BR}.`
+  );
+  texto("nac-secoes", `${fmt.format(r.st)} de ${fmt.format(r.ts)}`);
+  texto("nac-pct-secoes", r.pst == null ? "" : `${pct1(r.pst)} das seções`);
+  const pctSecoes = r.pst == null ? 0 : Math.min(100, Math.max(0, r.pst));
+  document.getElementById("nac-barra-secoes").innerHTML = `<span class="fatia-escura" style="width:${pctSecoes}%"></span>`;
+  if (!r.apurado) {
+    texto("nac-rotulo-lula", "Lula");
+    texto("nac-rotulo-flavio", "Flávio");
+    semApuracaoNacional();
+  } else {
+    const vl = r.vv ? (100 * r.lula.votos) / r.vv : null;
+    const vf = r.vv ? (100 * r.flavio.votos) / r.vv : null;
+    texto("nac-rotulo-lula", r.lula.nome || "Lula");
+    texto("nac-rotulo-flavio", r.flavio.nome || "Flávio");
+    texto("nac-lula", pct(vl));
+    texto("nac-lula-votos", `${fmt.format(r.lula.votos)} votos`);
+    texto("nac-flavio", pct(vf));
+    texto("nac-flavio-votos", `${fmt.format(r.flavio.votos)} votos`);
+    texto("nac-validos", fmt.format(r.vv));
+    texto("nac-brancos", fmt.format(r.vb));
+    texto("nac-nulos", `${fmt.format(r.vn)} nulos`);
+    texto("nac-comparecimento", fmt.format(r.tv));
+    const soma = r.lula.votos + r.flavio.votos;
+    const barra = document.getElementById("nac-barra-votos");
+    if (soma) {
+      const esq = (r.lula.votos / soma) * 100;
+      barra.innerHTML = `<span class="fatia-clara" style="width:${esq}%"></span><span class="fatia-escura" style="width:${100 - esq}%"></span>`;
+      barra.classList.remove("escondido");
+      document.getElementById("nac-legenda-votos").classList.remove("escondido");
+    } else {
+      barra.innerHTML = "";
+      barra.classList.add("escondido");
+      document.getElementById("nac-legenda-votos").classList.add("escondido");
+    }
+  }
+  texto(
+    "nac-atualizado",
+    `Última leitura desta página: ${horaLocal(estado.lidoEm)}. Próxima leitura automática: ${horaLocal(estado.lidoEm + INTERVALO_NACIONAL_MS)}.`
+  );
 }
 
 function pintarCobertura(r) {
@@ -115,18 +187,27 @@ function liberarUf() {
 }
 
 async function atualizarNacional() {
-  texto("status-nacional", "Consultando o arquivo nacional do TSE.");
+  if (estado.lendoNacional) return;
+  estado.lendoNacional = true;
+  if (!estado.nacional) texto("status-nacional", "Consultando o arquivo nacional do TSE.");
+  else texto("nac-atualizado", "Lendo o arquivo nacional de novo.");
   try {
     const dados = await lerTse("/tse/br");
     estado.nacional = resumir(dados);
-    texto("status-nacional", textoNacional(estado.nacional));
+    estado.lidoEm = Date.now();
+    pintarNacional(estado.nacional);
     pintarCobertura(estado.nacional);
   } catch (erro) {
-    estado.nacional = null;
-    texto("status-nacional", "Não consegui ler o arquivo nacional do TSE agora. Nenhum total foi preenchido no lugar.");
-    pintarCobertura(null);
+    if (!estado.nacional) {
+      texto("status-nacional", "Não consegui ler o arquivo nacional do TSE agora. Nenhum total foi preenchido no lugar.");
+      pintarNacional(null);
+      pintarCobertura(null);
+    } else {
+      texto("status-nacional", `A leitura nova falhou. Os totais abaixo são os de ${horaLocal(estado.lidoEm)}.`);
+    }
     console.error(erro);
   }
+  estado.lendoNacional = false;
   liberarUf();
 }
 
@@ -333,7 +414,11 @@ async function carregar() {
   await atualizarNacional();
   setInterval(() => {
     if (!document.hidden) atualizarNacional();
-  }, 60000);
+  }, INTERVALO_NACIONAL_MS);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden || !estado.lidoEm) return;
+    if (Date.now() - estado.lidoEm >= INTERVALO_NACIONAL_MS) atualizarNacional();
+  });
 }
 
 carregar();
