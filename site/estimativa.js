@@ -29,7 +29,7 @@ function pintarInicio(resumo, pred) {
   const s = pred.sensibilidade_prob_flavio;
   texto(
     "sensibilidade",
-    "Se o erro for 1,5 ponto, a chance de Flávio vai a " + Math.round(s["tau_1.5pp"] * 100) +
+    "Estimativa, não apuração. Se o erro for 1,5 ponto, a chance de Flávio vai a " + Math.round(s["tau_1.5pp"] * 100) +
     "%. Com 3 pontos, fica em " + Math.round(s["tau_3.0pp"] * 100) + "%."
   );
   const t1 = resumo.primeiro_turno_2026;

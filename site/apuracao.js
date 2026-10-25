@@ -134,6 +134,23 @@ function fraseSecoes(r) {
   return `Carimbo ${r.carimbo || "—"}. Seções totalizadas: ${fmt.format(r.st)} de ${fmt.format(r.ts)} (${pctSecoes}). Totalização encerrada: ${r.tf === "s" ? "sim" : "não"}.`;
 }
 
+function marcarStatus(rotulos) {
+  const caixa = document.getElementById("status-nacional");
+  if (!caixa) return;
+  caixa.innerHTML = rotulos.map((item) => `<span class="tag">${esc(item)}</span>`).join("");
+}
+
+function tagsDoBoletim(r) {
+  const pctSecoes = r.pstTexto == null ? "—" : casas2(r.pstTexto);
+  return [
+    "Dados em tempo real do TSE",
+    "Arquivo nacional, com o exterior quando ele entra nessa soma",
+    `Carimbo ${r.carimbo || "—"}`,
+    `Seções totalizadas: ${fmt.format(r.st)} de ${fmt.format(r.ts)} (${pctSecoes})`,
+    `Totalização encerrada: ${r.tf === "s" ? "sim" : "não"}`,
+  ];
+}
+
 function pctCandidato(cand, votos, validos) {
   if (cand && cand.percentual != null && cand.percentual !== "") return casas2(cand.percentual);
   if (!validos) return "—";
@@ -158,7 +175,7 @@ function semApuracaoNacional() {
   texto("nac-flavio-votos", "");
   texto("nac-validos", "sem apuração");
   texto("nac-brancos", "sem apuração");
-  texto("nac-nulos", "");
+  texto("nac-nulos", "sem apuração");
   texto("nac-comparecimento", "sem apuração");
   document.getElementById("nac-barra-votos").innerHTML = "";
   document.getElementById("nac-barra-votos").classList.add("escondido");
@@ -172,15 +189,12 @@ function pintarNacional(r) {
     document.getElementById("nac-barra-secoes").innerHTML = "";
     semApuracaoNacional();
     corDosCandidatos(false);
-    ["nac-lula", "nac-flavio", "nac-validos", "nac-brancos", "nac-comparecimento"].forEach((id) => texto(id, "—"));
+    ["nac-lula", "nac-flavio", "nac-validos", "nac-brancos", "nac-nulos", "nac-comparecimento"].forEach((id) => texto(id, "—"));
     texto("nac-lula-votos", "");
     texto("nac-atualizado", "");
     return;
   }
-  texto(
-    "status-nacional",
-    `Arquivo nacional do TSE, com o exterior quando ele entra nessa soma. ${fraseSecoes(r)}${fraseVotos(r)} Fonte: ${URL_BR}.`
-  );
+  marcarStatus(tagsDoBoletim(r));
   texto("nac-secoes", `${fmt.format(r.st)} de ${fmt.format(r.ts)}`);
   texto("nac-pct-secoes", r.pstTexto == null ? "" : `${casas2(r.pstTexto)} das seções`);
   const pctSecoes = r.pst == null ? 0 : Math.min(100, Math.max(0, r.pst));
@@ -199,7 +213,7 @@ function pintarNacional(r) {
     texto("nac-flavio-votos", `${fmt.format(r.flavio.votos)} votos`);
     texto("nac-validos", fmt.format(r.vv));
     texto("nac-brancos", fmt.format(r.vb));
-    texto("nac-nulos", `${fmt.format(r.vn)} nulos`);
+    texto("nac-nulos", fmt.format(r.vn));
     texto("nac-comparecimento", fmt.format(r.tv));
     const soma = r.lula.votos + r.flavio.votos;
     const barra = document.getElementById("nac-barra-votos");
@@ -363,7 +377,7 @@ function liberarUf() {
 async function atualizarNacional() {
   if (estado.lendoNacional) return;
   estado.lendoNacional = true;
-  if (!estado.nacional) texto("status-nacional", "Consultando o arquivo nacional do TSE.");
+  if (!estado.nacional) marcarStatus(["Consultando o arquivo nacional do TSE."]);
   else texto("nac-atualizado", "Lendo o arquivo nacional de novo.");
   try {
     const dados = await lerTse("/tse/br");
@@ -373,11 +387,11 @@ async function atualizarNacional() {
     pintarCobertura(estado.nacional);
   } catch (erro) {
     if (!estado.nacional) {
-      texto("status-nacional", "Não consegui ler o arquivo nacional do TSE agora. Nenhum total foi preenchido no lugar.");
+      marcarStatus(["Não consegui ler o arquivo nacional do TSE agora. Nenhum total foi preenchido no lugar."]);
       pintarNacional(null);
       pintarCobertura(null);
     } else {
-      texto("status-nacional", `A leitura nova falhou. Os totais abaixo são os de ${horaLocal(estado.lidoEm)}.`);
+      marcarStatus([`A leitura nova falhou. Os totais abaixo são os de ${horaLocal(estado.lidoEm)}.`]);
     }
     console.error(erro);
   }

@@ -90,7 +90,7 @@ function fichaDe(p) {
     ${bloco("2026, 1º turno", p.pl26, p.pf26, p.l26, p.f26, p.v26, "Lula", "Flávio")}
     ${bloco("2022, 2º turno", p.pl22, p.pb22, p.l22, p.b22, p.v22, "Lula", "Bolsonaro")}
     ${bloco("2018, 2º turno", p.ph18, p.pb18, p.h18, p.b18, p.v18, "Haddad", "Bolsonaro")}
-    <p class="miudo espaco">IBGE ${p.ibge}. <a href="apuracao.html">Apuração ao vivo do 2º turno</a></p>`;
+    <p class="miudo espaco">IBGE ${p.ibge}. <a href="index.html">Apuração ao vivo do 2º turno</a></p>`;
   if (!prefereMenosMovimento) {
     void ficha.offsetWidth;
     ficha.classList.add("ficha-entra");

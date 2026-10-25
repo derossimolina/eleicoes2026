@@ -14,9 +14,10 @@
     <div class="cabecalho">
       <a href="index.html"><img class="wordmark" src="marca/wordmark-op2-transparente-roxo.svg" alt="derossi.dev"></a>
       <nav class="nav" aria-label="Páginas">
-        <a href="index.html">Estimativa</a>
+        <a href="index.html">Apuração</a>
+        <a href="estimativa.html">Estimativa</a>
         <a href="mapa.html">Mapa</a>
-        <a href="apuracao.html" aria-current="page">Apuração</a>
+        <a href="apuracao.html" aria-current="page">Municípios</a>
         <a href="deputados.html">Deputados</a>
         <a href="metodo.html">Metodologia</a>
       </nav>
@@ -34,7 +35,7 @@
 
     <section class="bloco" aria-live="polite">
       <h2 class="titulo">Totalização nacional</h2>
-      <p class="lede" id="status-nacional">Consultando o arquivo nacional do TSE.</p>
+      <div class="tags" id="status-nacional"><span class="tag">Consultando o arquivo nacional do TSE.</span></div>
       <div class="grade-3 espaco">
         <article class="cartao">
           <p class="rotulo">Seções totalizadas</p>
@@ -53,15 +54,10 @@
           <p class="miudo num" id="nac-flavio-votos"></p>
         </article>
       </div>
-      <div class="grade-3 espaco">
+      <div class="grade-2 espaco">
         <article class="cartao">
           <p class="rotulo">Votos válidos</p>
           <p class="grande num" id="nac-validos">—</p>
-        </article>
-        <article class="cartao">
-          <p class="rotulo">Brancos</p>
-          <p class="grande num" id="nac-brancos">—</p>
-          <p class="miudo" id="nac-nulos"></p>
         </article>
         <article class="cartao">
           <p class="rotulo">Comparecimento</p>
@@ -70,6 +66,18 @@
       </div>
       <div class="barra espaco escondido" id="nac-barra-votos"></div>
       <p class="miudo escondido" id="nac-legenda-votos">Vermelho: Lula. Azul: Flávio. A barra usa só os votos dos dois, entre os válidos.</p>
+      <p class="kicker espaco">Brancos e nulos</p>
+      <p class="miudo">Ficam fora do quadro de Lula e Flávio. Não entram na barra acima.</p>
+      <div class="grade-2 espaco">
+        <article class="cartao">
+          <p class="rotulo">Brancos</p>
+          <p class="grande num" id="nac-brancos">—</p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo">Nulos</p>
+          <p class="grande num" id="nac-nulos">—</p>
+        </article>
+      </div>
       <p class="miudo espaco" id="nac-atualizado"></p>
       <p class="miudo" id="carimbo-pipeline"></p>
       <p class="espaco"><button id="atualizar-br" type="button" class="btn btn-cheio">Atualizar o Brasil</button></p>
@@ -124,7 +132,7 @@
         <img class="icone-d" src="marca/avatar-d-barra-transparente-branco.svg" alt="">
       </div>
       <p class="direitos">Copyright 2026 derossi.dev - Todos os direitos reservados</p>
-      <p class="fontes">Fonte ao vivo: resultados.tse.jus.br, eleição 6258, arquivos -u.json. O 1º turno é a base já apurada, sem o exterior. Não é apoio a candidato ou partido.</p>
+      <p class="fontes">Fonte: Dados em tempo real do TSE. O 1º turno é a base já apurada, sem o exterior. Não é apoio a candidato ou partido.</p>
     </div>
   </footer>
   <script src="comum.js"></script>

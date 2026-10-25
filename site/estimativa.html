@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eleições 2026 - Previsão e Apuração</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+ExtraCondensed:ital,wght@1,900&family=Inter:wght@400;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="marca.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="cabecalho">
+      <a href="index.html"><img class="wordmark" src="marca/wordmark-op2-transparente-roxo.svg" alt="derossi.dev"></a>
+      <nav class="nav" aria-label="Páginas">
+        <a href="index.html">Apuração</a>
+        <a href="estimativa.html" aria-current="page">Estimativa</a>
+        <a href="mapa.html">Mapa</a>
+        <a href="apuracao.html">Municípios</a>
+        <a href="deputados.html">Deputados</a>
+        <a href="metodo.html">Metodologia</a>
+      </nav>
+    </div>
+  </header>
+  <main class="miolo">
+    <div class="grade-hero">
+      <div>
+        <p class="kicker">Estimativa · não é apuração</p>
+        <h1 class="titulo">Estimativa</h1>
+        <div class="tags" aria-label="O que esta página é">
+          <span class="tag">Estimativa</span>
+          <span class="tag">Pesquisas até 25/10/2026</span>
+          <span class="tag">Não é a apuração</span>
+          <span class="tag">Não é certeza</span>
+        </div>
+        <p class="lede" id="aviso-pred">Carregando a estimativa publicada pelo pipeline.</p>
+        <p class="espaco">Os cartões abaixo estimam o 2º turno a partir de 16 pesquisas. Eles não contam voto de urna. A apuração, com os dados ao vivo, está na página principal.</p>
+        <p class="espaco"><a href="index.html">Voltar para a apuração</a></p>
+      </div>
+      <div class="palco"><canvas id="cena" data-cena="estimativa" data-estado="iniciando" aria-hidden="true"></canvas></div>
+    </div>
+
+    <div class="grade-3 bloco">
+      <article class="cartao">
+        <p class="rotulo">Média estimada, votos válidos</p>
+        <p class="grande num"><span id="pct-flavio" class="cor-flavio">—</span> Flávio</p>
+        <p class="grande num"><span id="pct-lula" class="cor-lula">—</span> Lula</p>
+      </article>
+      <article class="cartao">
+        <p class="rotulo">Chance estimada</p>
+        <p class="grande num">Flávio <span id="prob-flavio" class="cor-flavio">—</span></p>
+        <p class="miudo num">Lula <span id="prob-lula" class="cor-lula">—</span></p>
+        <p class="miudo">Estimativa com erro de eleição de 2 pontos, além da margem de cada pesquisa. Não é o resultado da apuração.</p>
+      </article>
+      <article class="cartao">
+        <p class="rotulo">Intervalo estimado de Flávio</p>
+        <p class="grande num" id="intervalo">—</p>
+        <p class="miudo" id="sensibilidade">A sensibilidade da estimativa em 1,5 e 3 pontos aparece depois do carregamento.</p>
+      </article>
+    </div>
+
+    <section class="bloco">
+      <h2 class="titulo">As 16 pesquisas da estimativa</h2>
+      <p class="lede">Cada barra reparte a fatia dos dois nomes. Vermelho é Lula e azul é Flávio. O peso à direita já desconta a margem e a idade do campo até 25/10. Isto entra na estimativa. Não é voto apurado.</p>
+      <div id="lista-pesquisas" class="espaco" style="display:grid;gap:0.75rem"></div>
+    </section>
+
+    <section class="bloco">
+      <h2 class="titulo">1º turno já apurado</h2>
+      <p class="lede">Isto é voto de 4 de outubro, município a município, sem o exterior. Não faz parte da estimativa do 2º turno.</p>
+      <div class="grade-3 espaco">
+        <article class="cartao">
+          <p class="rotulo">Flávio</p>
+          <p class="grande num cor-flavio" id="t1-flavio">—</p>
+          <p class="miudo num" id="t1-flavio-votos"></p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo">Lula</p>
+          <p class="grande num cor-lula" id="t1-lula">—</p>
+          <p class="miudo num" id="t1-lula-votos"></p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo">Votos válidos</p>
+          <p class="grande num" id="t1-validos">—</p>
+          <p class="miudo" id="t1-mun">5.571 municípios</p>
+        </article>
+      </div>
+      <p class="kicker espaco">Margem de Flávio sobre Lula no 1º turno, em pontos, por UF</p>
+      <div id="barras-uf" class="espaco"></div>
+    </section>
+  </main>
+  <footer class="rodape">
+    <div class="miolo">
+      <div class="rodape-faixa">
+        <img class="wordmark-rodape" src="marca/wordmark-op2-transparente-branco.svg" alt="derossi.dev">
+        <img class="icone-d" src="marca/avatar-d-barra-transparente-branco.svg" alt="">
+      </div>
+      <p class="direitos">Copyright 2026 derossi.dev - Todos os direitos reservados</p>
+      <p class="fontes">Esta página é uma estimativa, com método, margem e incerteza. A apuração usa dados em tempo real do TSE. Não é apoio a candidato ou partido.</p>
+    </div>
+  </footer>
+  <script src="comum.js"></script>
+  <script src="estimativa.js"></script>
+  <script type="module" src="cena.js"></script>
+</body>
+</html>
