@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Metodologia · derossi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+ExtraCondensed:ital,wght@1,900&family=Inter:wght@400;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="marca.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="cabecalho">
+      <a href="index.html"><img class="wordmark" src="marca/wordmark-op2-transparente-roxo.svg" alt="derossi.dev"></a>
+      <nav class="nav" aria-label="Páginas">
+        <a href="index.html">Estimativa</a>
+        <a href="mapa.html">Mapa</a>
+        <a href="apuracao.html">Apuração</a>
+        <a href="deputados.html">Deputados</a>
+        <a href="metodo.html" aria-current="page">Metodologia</a>
+      </nav>
+    </div>
+  </header>
+  <main class="miolo">
+    <div class="grade-hero">
+      <div>
+        <p class="kicker">Predição pré-eleitoral · derossi.dev</p>
+        <h1 class="titulo">Como a chance foi calculada</h1>
+        <p class="lede" id="metodo-numeros">Carregando a média, o intervalo e as pesquisas que entraram.</p>
+      </div>
+      <div class="palco"><canvas id="cena" data-cena="metodo" data-estado="iniciando" aria-hidden="true"></canvas></div>
+    </div>
+    <div class="lede bloco" style="display:grid;gap:1rem;max-width:46rem">
+      <p>A conta é pré-eleitoral, com data de referência em 25 de outubro de 2026. Ela não lê urna e não substitui a apuração. Previsão não é certeza.</p>
+      <p>Entra uma rodada por instituto, só quando o par de votos válidos está escrito na fonte. O peso segue Jackman (2005): mais precisão e campo mais recente pesam mais. A meia-vida é de 3 dias, contada do meio do campo até 25/10. Com uma rodada por casa, efeito de instituto não entra no peso.</p>
+      <p>A chance de vitória segue Shirani-Mehr, Rothschild, Goel e Gelman (2018, JASA). A margem publicada encolhe quando as pesquisas são juntadas. O erro comum de eleição, não. No cenário principal esse erro é de 2 pontos percentuais. 1,5 e 3 pontos são só sensibilidade. Não é um erro reestimado para o Brasil em 2026.</p>
+      <p>A probabilidade é a de uma normal: Flávio acima de 50% dos votos válidos. O intervalo de 95% usa o mesmo desvio.</p>
+      <p id="metodo-exclusoes"></p>
+    </div>
+    <div id="tabela-metodo" class="tabela-wrap bloco"></div>
+  </main>
+  <footer class="rodape">
+    <div class="miolo">
+      <div class="rodape-faixa">
+        <img class="wordmark-rodape" src="marca/wordmark-op2-transparente-branco.svg" alt="derossi.dev">
+        <img class="icone-d" src="marca/avatar-d-barra-transparente-branco.svg" alt="">
+      </div>
+      <p class="direitos">Copyright 2026 derossi.dev - Todos os direitos reservados</p>
+      <p class="fontes">A predição é da derossi.dev. Cada pesquisa da tabela aponta a fonte usada. Não é apoio a candidato ou partido.</p>
+    </div>
+  </footer>
+  <script src="comum.js"></script>
+  <script src="metodo.js"></script>
+  <script type="module" src="cena.js"></script>
+</body>
+</html>

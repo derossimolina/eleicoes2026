@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mapa · derossi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+ExtraCondensed:ital,wght@1,900&family=Inter:wght@400;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="marca.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="cabecalho">
+      <a href="index.html"><img class="wordmark" src="marca/wordmark-op2-transparente-roxo.svg" alt="derossi.dev"></a>
+      <nav class="nav" aria-label="Páginas">
+        <a href="index.html">Estimativa</a>
+        <a href="mapa.html" aria-current="page">Mapa</a>
+        <a href="apuracao.html">Apuração</a>
+        <a href="deputados.html">Deputados</a>
+        <a href="metodo.html">Metodologia</a>
+      </nav>
+    </div>
+  </header>
+  <main class="miolo">
+    <div class="grade-hero">
+      <div>
+        <p class="kicker">Municípios · 1º turno de 2026 e 2º turnos anteriores</p>
+        <h1 class="titulo">Mapa municipal</h1>
+        <p class="lede">Escala de um roxo só. Mais escuro, maior fatia de Flávio em 2026, ou de Bolsonaro em 2022 e 2018, entre os dois nomes. Mais claro, maior fatia de Lula ou de Haddad. Não é cor de partido. O 2º turno de 2026 não é pintado aqui.</p>
+      </div>
+      <div class="palco"><canvas id="cena" data-cena="mapa" data-estado="iniciando" aria-hidden="true"></canvas></div>
+    </div>
+    <div class="grade-mapa bloco">
+      <div>
+        <div class="pilha" role="group" aria-label="Camada do mapa">
+          <button type="button" data-camada="26" class="btn camada" aria-pressed="true">2026, 1º turno</button>
+          <button type="button" data-camada="22" class="btn camada" aria-pressed="false">2022, 2º turno</button>
+          <button type="button" data-camada="18" class="btn camada" aria-pressed="false">2018, 2º turno</button>
+        </div>
+        <label class="rotulo espaco" for="busca-mun">Município</label>
+        <input id="busca-mun" class="campo" type="search" placeholder="Nome ou UF" autocomplete="off">
+        <ul id="busca-resultado" class="busca-lista"></ul>
+        <p class="miudo espaco" id="legenda-texto">Escuro: Flávio. Claro: Lula. 1º turno de 2026.</p>
+        <ul class="legenda">
+          <li><span class="swatch" style="background:#f3e8fa"></span> Mais claro, o nome da esquerda</li>
+          <li><span class="swatch" style="background:#9d79b3"></span> Fatias próximas</li>
+          <li><span class="swatch" style="background:#470a6d"></span> Mais escuro, o nome da direita</li>
+          <li><span class="swatch" style="background:#ffffff"></span> Sem dado</li>
+        </ul>
+      </div>
+      <div id="mapa-folha" class="mapa" role="region" aria-label="Mapa do Brasil por município"></div>
+      <aside id="ficha" class="cartao">
+        <p class="rotulo">Município</p>
+        <p class="espaco">Clique num município ou busque pelo nome.</p>
+      </aside>
+    </div>
+  </main>
+  <footer class="rodape">
+    <div class="miolo">
+      <div class="rodape-faixa">
+        <img class="wordmark-rodape" src="marca/wordmark-op2-transparente-branco.svg" alt="derossi.dev">
+        <img class="icone-d" src="marca/avatar-d-barra-transparente-branco.svg" alt="">
+      </div>
+      <p class="direitos">Copyright 2026 derossi.dev - Todos os direitos reservados</p>
+      <p class="fontes">Fontes: TSE e malha municipal. A cor é uma escala de um roxo, não uma bandeira. Não é apoio a candidato ou partido.</p>
+    </div>
+  </footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="comum.js"></script>
+  <script src="mapa.js"></script>
+  <script type="module" src="cena.js"></script>
+</body>
+</html>

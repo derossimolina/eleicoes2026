@@ -1,0 +1,123 @@
+const estado = { camada: "26", selecionado: null, camadaGeo: null };
+
+const LEGENDA = {
+  "26": "Escuro: Flávio. Claro: Lula. 1º turno de 2026.",
+  "22": "Escuro: Bolsonaro. Claro: Lula. 2º turno de 2022.",
+  "18": "Escuro: Bolsonaro. Claro: Haddad. 2º turno de 2018.",
+};
+
+function tom(fatiaDireita) {
+  const t = Math.min(1, Math.max(0, fatiaDireita));
+  const a = [243, 232, 250];
+  const b = [71, 10, 109];
+  const c = a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+}
+
+function parDaCamada(p) {
+  if (estado.camada === "26") return [p.pl26, p.pf26];
+  if (estado.camada === "22") return [p.pl22, p.pb22];
+  return [p.ph18, p.pb18];
+}
+
+function corDe(p) {
+  const [esq, dir] = parDaCamada(p);
+  if (esq == null || dir == null) return "#ffffff";
+  const soma = esq + dir;
+  if (!soma) return "#ffffff";
+  return tom(dir / soma);
+}
+
+function estilo(feature) {
+  const ativo = estado.selecionado && feature.properties.ibge === estado.selecionado;
+  return {
+    color: ativo ? "#470A6D" : "rgba(71,10,109,0.45)",
+    weight: ativo ? 2 : 0.4,
+    fillColor: corDe(feature.properties),
+    fillOpacity: 1,
+  };
+}
+
+function bloco(titulo, a, b, va, vb, validos, nomeA, nomeB) {
+  return `<h3 class="rotulo espaco">${titulo}</h3>
+    <p class="espaco">${nomeA} ${pct1(a)} <span class="num">${va == null ? "" : "· " + fmt.format(va)}</span></p>
+    <p>${nomeB} ${pct1(b)} <span class="num">${vb == null ? "" : "· " + fmt.format(vb)}</span></p>
+    <p class="miudo">Válidos ${validos == null ? "—" : fmt.format(validos)}</p>`;
+}
+
+function fichaDe(p) {
+  document.getElementById("ficha").innerHTML = `
+    <p class="rotulo">${p.uf || "Malha"}</p>
+    <h2 class="titulo" style="font-size:2.2rem">${esc(p.nm)}</h2>
+    ${p.v26 == null ? "<p class='espaco'>Sem voto de presidente neste polígono.</p>" : ""}
+    ${bloco("2026, 1º turno", p.pl26, p.pf26, p.l26, p.f26, p.v26, "Lula", "Flávio")}
+    ${bloco("2022, 2º turno", p.pl22, p.pb22, p.l22, p.b22, p.v22, "Lula", "Bolsonaro")}
+    ${bloco("2018, 2º turno", p.ph18, p.pb18, p.h18, p.b18, p.v18, "Haddad", "Bolsonaro")}
+    <p class="miudo espaco">IBGE ${p.ibge}. <a href="apuracao.html">Apuração ao vivo do 2º turno</a></p>`;
+}
+
+function selecionar(ibge, voar) {
+  estado.selecionado = ibge;
+  const layer = estado.indice.get(ibge);
+  if (!layer) return;
+  estado.camadaGeo.setStyle(estilo);
+  fichaDe(layer.feature.properties);
+  if (voar) estado.camadaGeo._map.fitBounds(layer.getBounds(), { maxZoom: 8 });
+}
+
+function montarMapa(geo) {
+  const mapa = L.map("mapa-folha", { scrollWheelZoom: true }).setView([-14.2, -51.9], 4);
+  const indice = new Map();
+  estado.camadaGeo = L.geoJSON(geo, {
+    style: estilo,
+    onEachFeature(feature, layer) {
+      indice.set(feature.properties.ibge, layer);
+      layer.on("click", () => selecionar(feature.properties.ibge));
+    },
+  }).addTo(mapa);
+  estado.indice = indice;
+  document.querySelectorAll(".camada").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      estado.camada = botao.dataset.camada;
+      document.querySelectorAll(".camada").forEach((b) => {
+        b.setAttribute("aria-pressed", b === botao ? "true" : "false");
+      });
+      texto("legenda-texto", LEGENDA[estado.camada]);
+      estado.camadaGeo.setStyle(estilo);
+    });
+  });
+  const busca = document.getElementById("busca-mun");
+  const lista = document.getElementById("busca-resultado");
+  busca.addEventListener("input", () => {
+    const q = semAcento(busca.value.trim());
+    if (q.length < 2) {
+      lista.innerHTML = "";
+      return;
+    }
+    const achados = geo.features
+      .filter((f) => semAcento(`${f.properties.nm} ${f.properties.uf || ""}`).includes(q))
+      .slice(0, 8);
+    lista.innerHTML = achados.map((f) =>
+      `<li><button type="button" data-ibge="${esc(f.properties.ibge)}" class="busca-item">${esc(f.properties.nm)}${f.properties.uf ? " · " + esc(f.properties.uf) : ""}</button></li>`
+    ).join("");
+  });
+  lista.addEventListener("click", (ev) => {
+    const botao = ev.target.closest("button");
+    if (!botao) return;
+    selecionar(botao.dataset.ibge, true);
+    lista.innerHTML = "";
+    busca.value = "";
+  });
+}
+
+async function carregar() {
+  try {
+    const geo = await lerJson("dados/municipios.geojson");
+    montarMapa(geo);
+  } catch (erro) {
+    falhaDados("ficha");
+    console.error(erro);
+  }
+}
+
+carregar();

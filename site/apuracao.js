@@ -1,0 +1,339 @@
+const UFS = ["AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"];
+const URL_BR = "https://resultados.tse.jus.br/oficial/ele2026/6258/dados/br/br-c0001-e006258-u.json";
+
+const estado = {
+  municipios: [],
+  porCd: new Map(),
+  uf: "",
+  atual: null,
+  nacional: null,
+  lidos: new Map(),
+  controle: null,
+};
+
+function quandoCena(fn) {
+  if (window.__cena) fn(window.__cena);
+  else window.addEventListener("cena-pronta", () => fn(window.__cena), { once: true });
+}
+
+function esperar(ms, signal) {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(() => resolve(), ms);
+    if (!signal) return;
+    const abortar = () => {
+      clearTimeout(id);
+      reject(new DOMException("abortado", "AbortError"));
+    };
+    if (signal.aborted) abortar();
+    else signal.addEventListener("abort", abortar, { once: true });
+  });
+}
+
+async function lerTse(caminho, signal) {
+  const resposta = await fetch(caminho, { signal, cache: "no-store" });
+  if (!resposta.ok) throw new Error(caminho + " " + resposta.status);
+  return resposta.json();
+}
+
+function lerCandidatos(dados) {
+  const achados = {};
+  for (const cargo of dados.carg || []) {
+    if (String(cargo.cd) !== "1") continue;
+    for (const agr of cargo.agr || []) {
+      for (const par of agr.par || []) {
+        for (const cand of par.cand || []) {
+          achados[Number(cand.n)] = {
+            nome: cand.nmu || cand.nm || "",
+            votos: intBr(cand.vap),
+            partido: par.sg || "",
+          };
+        }
+      }
+    }
+  }
+  return achados;
+}
+
+function resumir(dados) {
+  const s = dados.s || {};
+  const v = dados.v || {};
+  const st = intBr(s.st);
+  const ts = intBr(s.ts);
+  const pst = numBr(s.pst);
+  const saida = {
+    carimbo: `${dados.dg || ""} ${dados.hg || ""}`.trim(),
+    tf: dados.tf || "",
+    st,
+    ts,
+    pst,
+    apurado: st > 0,
+    fracao: pst != null ? pst / 100 : (ts ? st / ts : 0),
+  };
+  if (!saida.apurado) return saida;
+  const cands = lerCandidatos(dados);
+  saida.lula = cands[13] || { nome: "LULA", votos: 0, partido: "PT" };
+  saida.flavio = cands[22] || { nome: "FLAVIO BOLSONARO", votos: 0, partido: "PL" };
+  saida.vv = intBr(v.vv);
+  saida.vb = intBr(v.vb);
+  saida.vn = intBr(v.vn);
+  saida.tv = intBr(v.tv);
+  return saida;
+}
+
+function fraseSecoes(r) {
+  const pctSecoes = r.pst == null ? "—" : pct1(r.pst);
+  return `Carimbo ${r.carimbo || "—"}. Seções totalizadas: ${fmt.format(r.st)} de ${fmt.format(r.ts)} (${pctSecoes}). Totalização encerrada: ${r.tf === "s" ? "sim" : "não"}.`;
+}
+
+function fraseVotos(r) {
+  if (!r.apurado) {
+    return " Ainda sem apuração. Os zeros do arquivo não entram como voto.";
+  }
+  const vl = r.vv ? (100 * r.lula.votos) / r.vv : null;
+  const vf = r.vv ? (100 * r.flavio.votos) / r.vv : null;
+  return ` ${r.lula.nome} ${fmt.format(r.lula.votos)} (${pct(vl)}). ${r.flavio.nome} ${fmt.format(r.flavio.votos)} (${pct(vf)}). Válidos ${fmt.format(r.vv)}. Brancos ${fmt.format(r.vb)}. Nulos ${fmt.format(r.vn)}. Comparecimento ${fmt.format(r.tv)}.`;
+}
+
+function textoNacional(r) {
+  return `Arquivo nacional do TSE. ${fraseSecoes(r)}${fraseVotos(r)} Fonte: ${URL_BR}.`;
+}
+
+function pintarCobertura(r) {
+  quandoCena((cena) => cena.definirCobertura(r ? r.fracao : 0));
+}
+
+function liberarUf() {
+  const botao = document.getElementById("ler-uf");
+  const pode = Boolean(estado.uf && estado.nacional && estado.nacional.apurado && !estado.controle);
+  botao.disabled = !pode;
+  texto(
+    "nota-uf",
+    estado.nacional && estado.nacional.apurado
+      ? "A leitura pede um arquivo do TSE por município desta UF."
+      : "A leitura de uma UF inteira só libera quando o arquivo nacional tiver seção totalizada."
+  );
+}
+
+async function atualizarNacional() {
+  texto("status-nacional", "Consultando o arquivo nacional do TSE.");
+  try {
+    const dados = await lerTse("/tse/br");
+    estado.nacional = resumir(dados);
+    texto("status-nacional", textoNacional(estado.nacional));
+    pintarCobertura(estado.nacional);
+  } catch (erro) {
+    estado.nacional = null;
+    texto("status-nacional", "Não consegui ler o arquivo nacional do TSE agora. Nenhum total foi preenchido no lugar.");
+    pintarCobertura(null);
+    console.error(erro);
+  }
+  liberarUf();
+}
+
+function fatia(votos, validos) {
+  if (votos == null || !validos) return null;
+  return (100 * votos) / validos;
+}
+
+function celulaSegundo(cd) {
+  const lido = estado.lidos.get(cd);
+  if (!lido) return "não lido";
+  if (lido.erro) return "sem resposta";
+  if (!lido.apurado) return `sem apuração · ${lido.carimbo}`;
+  return `${fmt.format(lido.lula.votos)} e ${fmt.format(lido.flavio.votos)} · ${fmt.format(lido.st)}/${fmt.format(lido.ts)} seções`;
+}
+
+function desenharTabela() {
+  const corpo = document.getElementById("corpo-mun");
+  const vazia = document.getElementById("tabela-vazia");
+  if (!estado.uf) {
+    corpo.innerHTML = "";
+    vazia.classList.remove("escondido");
+    return;
+  }
+  const linhas = estado.municipios.filter((m) => m.uf === estado.uf);
+  vazia.classList.toggle("escondido", linhas.length > 0);
+  corpo.innerHTML = linhas.map((m) => `<tr class="${estado.atual && estado.atual.cd === m.cd ? "linha-ativa" : ""}">
+      <td><button type="button" class="link-mun" data-cd="${esc(m.cd)}">${esc(m.nm)}</button></td>
+      <td class="num">${m.l == null ? "—" : fmt.format(m.l)}</td>
+      <td class="num">${m.f == null ? "—" : fmt.format(m.f)}</td>
+      <td class="num">${m.v == null ? "—" : fmt.format(m.v)}</td>
+      <td id="vivo-${esc(m.cd)}">${esc(celulaSegundo(m.cd))}</td>
+    </tr>`).join("");
+}
+
+function pintarFicha(m) {
+  const lula = fatia(m.l, m.v);
+  const flavio = fatia(m.f, m.v);
+  texto("ficha-base", "");
+  document.getElementById("ficha-mun").querySelector(".rotulo").textContent = m.uf;
+  const base = document.getElementById("ficha-base");
+  base.innerHTML = `<h2 class="titulo" style="font-size:2.4rem">${esc(m.nm)}</h2>
+    <p class="miudo espaco">Código TSE ${esc(m.cd)}. IBGE ${esc(m.ibge || "—")}.</p>
+    <p class="espaco">1º turno de 4 de outubro, base já apurada, sem exterior. Lula ${m.l == null ? "—" : fmt.format(m.l)} (${pct(lula)}). Flávio ${m.f == null ? "—" : fmt.format(m.f)} (${pct(flavio)}). Válidos ${m.v == null ? "—" : fmt.format(m.v)}.</p>`;
+}
+
+function pintarVivo(m, r) {
+  const caixa = document.getElementById("ficha-vivo");
+  if (!r.apurado) {
+    caixa.innerHTML = `<p class="espaco">2º turno: o TSE publicou este município com zero seções totalizadas. ${esc(fraseSecoes(r))} Os zeros do arquivo não entram como voto.</p>`;
+    return;
+  }
+  const l1 = fatia(m.l, m.v);
+  const f1 = fatia(m.f, m.v);
+  const l2 = r.vv ? (100 * r.lula.votos) / r.vv : null;
+  const f2 = r.vv ? (100 * r.flavio.votos) / r.vv : null;
+  const delta = (a, b) => (a == null || b == null) ? "—" : ((a - b) >= 0 ? "+" : "") + (a - b).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  caixa.innerHTML = `<p class="espaco">2º turno ao vivo. ${esc(fraseSecoes(r))}</p>
+    <p class="grande num espaco">${esc(r.lula.nome)} ${fmt.format(r.lula.votos)} <span class="miudo">(${pct(l2)})</span></p>
+    <p class="grande num">${esc(r.flavio.nome)} ${fmt.format(r.flavio.votos)} <span class="miudo">(${pct(f2)})</span></p>
+    <p class="espaco">Válidos ${fmt.format(r.vv)}. Brancos ${fmt.format(r.vb)}. Nulos ${fmt.format(r.vn)}. Comparecimento ${fmt.format(r.tv)}.</p>
+    <p class="miudo">Diferença em pontos contra o 1º turno deste município: Lula ${delta(l2, l1)}, Flávio ${delta(f2, f1)}.</p>`;
+}
+
+async function abrirMunicipio(cd) {
+  const m = estado.porCd.get(cd);
+  if (!m) return;
+  estado.atual = m;
+  if (estado.uf !== m.uf) {
+    estado.uf = m.uf;
+    document.getElementById("filtro-uf").value = m.uf;
+  }
+  pintarFicha(m);
+  desenharTabela();
+  document.getElementById("ficha-vivo").innerHTML = `<p class="espaco">Lendo o arquivo deste município no TSE.</p>`;
+  try {
+    const dados = await lerTse(`/tse/mun/${m.uf.toLowerCase()}/${m.cd}`);
+    const r = resumir(dados);
+    estado.lidos.set(m.cd, r);
+    pintarVivo(m, r);
+    const celula = document.getElementById(`vivo-${m.cd}`);
+    if (celula) celula.textContent = celulaSegundo(m.cd);
+  } catch (erro) {
+    estado.lidos.set(m.cd, { erro: true });
+    document.getElementById("ficha-vivo").innerHTML = `<p class="espaco">Não consegui ler o arquivo deste município no TSE.</p>`;
+    console.error(erro);
+  }
+}
+
+async function aoMudarUf() {
+  estado.uf = document.getElementById("filtro-uf").value;
+  desenharTabela();
+  liberarUf();
+  if (!estado.uf) {
+    texto("status-uf", "");
+    return;
+  }
+  const n = estado.municipios.filter((m) => m.uf === estado.uf).length;
+  texto("status-uf", `Lendo o arquivo de ${estado.uf} no TSE. A UF tem ${fmt.format(n)} municípios na base.`);
+  try {
+    const dados = await lerTse(`/tse/uf/${estado.uf.toLowerCase()}`);
+    const r = resumir(dados);
+    texto("status-uf", `${estado.uf}. ${fraseSecoes(r)}${fraseVotos(r)}`);
+  } catch (erro) {
+    texto("status-uf", `Não consegui ler o arquivo de ${estado.uf} no TSE.`);
+    console.error(erro);
+  }
+}
+
+async function lerUfInteira() {
+  if (!estado.uf || !estado.nacional || !estado.nacional.apurado) return;
+  if (estado.controle) estado.controle.abort();
+  const controle = new AbortController();
+  estado.controle = controle;
+  document.getElementById("parar-uf").classList.remove("escondido");
+  document.getElementById("ler-uf").disabled = true;
+  const lista = estado.municipios.filter((m) => m.uf === estado.uf);
+  let i = 0;
+  try {
+    for (const m of lista) {
+      if (controle.signal.aborted) break;
+      i += 1;
+      texto("progresso", `Lendo ${fmt.format(i)} de ${fmt.format(lista.length)}: ${m.nm}`);
+      try {
+        const dados = await lerTse(`/tse/mun/${m.uf.toLowerCase()}/${m.cd}`, controle.signal);
+        estado.lidos.set(m.cd, resumir(dados));
+        const celula = document.getElementById(`vivo-${m.cd}`);
+        if (celula) celula.textContent = celulaSegundo(m.cd);
+      } catch (erro) {
+        if (erro.name === "AbortError") break;
+        estado.lidos.set(m.cd, { erro: true });
+        const celula = document.getElementById(`vivo-${m.cd}`);
+        if (celula) celula.textContent = "sem resposta";
+      }
+      await esperar(150, controle.signal);
+    }
+  } catch (erro) {
+    if (erro.name !== "AbortError") console.error(erro);
+  }
+  estado.controle = null;
+  document.getElementById("parar-uf").classList.add("escondido");
+  texto("progresso", controle.signal.aborted ? "Leitura interrompida." : "Leitura da UF encerrada.");
+  liberarUf();
+}
+
+function prepararBusca() {
+  const busca = document.getElementById("busca-mun");
+  const lista = document.getElementById("busca-resultado");
+  busca.addEventListener("input", () => {
+    const q = semAcento(busca.value.trim());
+    if (q.length < 2) {
+      lista.innerHTML = "";
+      return;
+    }
+    const achados = estado.municipios
+      .filter((m) => semAcento(`${m.nm} ${m.uf}`).includes(q))
+      .slice(0, 12);
+    lista.innerHTML = achados.map((m) =>
+      `<li><button type="button" class="busca-item" data-cd="${esc(m.cd)}">${esc(m.nm)} · ${esc(m.uf)}</button></li>`
+    ).join("");
+  });
+  lista.addEventListener("click", (ev) => {
+    const botao = ev.target.closest("button");
+    if (!botao) return;
+    lista.innerHTML = "";
+    busca.value = "";
+    abrirMunicipio(botao.dataset.cd);
+  });
+}
+
+async function carregar() {
+  document.getElementById("filtro-uf").innerHTML = `<option value="">Escolha</option>` +
+    UFS.map((uf) => `<option value="${uf}">${uf}</option>`).join("");
+  document.getElementById("filtro-uf").addEventListener("change", aoMudarUf);
+  document.getElementById("atualizar-br").addEventListener("click", atualizarNacional);
+  document.getElementById("ler-uf").addEventListener("click", lerUfInteira);
+  document.getElementById("parar-uf").addEventListener("click", () => {
+    if (estado.controle) estado.controle.abort();
+  });
+  document.getElementById("corpo-mun").addEventListener("click", (ev) => {
+    const botao = ev.target.closest("button");
+    if (!botao) return;
+    abrirMunicipio(botao.dataset.cd);
+  });
+  prepararBusca();
+  try {
+    const [municipios, resumo] = await Promise.all([
+      lerJson("dados/municipios.json"),
+      lerJson("dados/resumo.json").catch(() => null),
+    ]);
+    estado.municipios = municipios;
+    estado.porCd = new Map(municipios.map((m) => [m.cd, m]));
+    if (resumo && resumo.segundo_turno) {
+      texto(
+        "carimbo-pipeline",
+        "Último carimbo gravado pelo pipeline, que pode estar atrasado: " + resumo.segundo_turno.carimbo_tse + "."
+      );
+    }
+  } catch (erro) {
+    falhaDados("status-nacional");
+    console.error(erro);
+    return;
+  }
+  await atualizarNacional();
+  setInterval(() => {
+    if (!document.hidden) atualizarNacional();
+  }, 60000);
+}
+
+carregar();

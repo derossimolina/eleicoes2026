@@ -1,9 +1,13 @@
-# Blueprint do Render. O dashboard é a pasta site/, sem build de frontend.
-# Não reescreva /* para index.html: dados/*.json e o GeoJSON precisam ser arquivos.
+# A apuração lê o TSE por /tse/, no mesmo domínio. Por isso o serviço é Python,
+# não um site estático: o navegador não acessa resultados.tse.jus.br direto.
+# O Render define PORT. O app.py escuta nele.
 services:
   - type: web
     name: eleicoes2026
-    runtime: static
-    buildCommand: "echo site pronto"
-    staticPublishPath: site
+    runtime: python
+    buildCommand: python -c "import sys; print(sys.version)"
+    startCommand: python app.py
     pullRequestPreviewsEnabled: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"

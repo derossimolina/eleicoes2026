@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apuração · derossi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+ExtraCondensed:ital,wght@1,900&family=Inter:wght@400;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="marca.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="cabecalho">
+      <a href="index.html"><img class="wordmark" src="marca/wordmark-op2-transparente-roxo.svg" alt="derossi.dev"></a>
+      <nav class="nav" aria-label="Páginas">
+        <a href="index.html">Estimativa</a>
+        <a href="mapa.html">Mapa</a>
+        <a href="apuracao.html" aria-current="page">Apuração</a>
+        <a href="deputados.html">Deputados</a>
+        <a href="metodo.html">Metodologia</a>
+      </nav>
+    </div>
+  </header>
+  <main class="miolo">
+    <div class="grade-hero">
+      <div>
+        <p class="kicker">2º turno · arquivo oficial do TSE</p>
+        <h1 class="titulo">Apuração por município</h1>
+        <p class="lede">Cada município é um arquivo do TSE. Enquanto a seção nacional estiver com zero seções totalizadas, o voto municipal fica em branco. Zero nesse arquivo significa que a urna ainda não entrou, não que o candidato teve zero votos.</p>
+      </div>
+      <div class="palco"><canvas id="cena" data-cena="apuracao" data-estado="iniciando" aria-hidden="true"></canvas></div>
+    </div>
+
+    <article class="aviso bloco" aria-live="polite">
+      <p id="status-nacional">Consultando o arquivo nacional do TSE.</p>
+      <p class="miudo espaco" id="carimbo-pipeline"></p>
+      <p class="espaco"><button id="atualizar-br" type="button" class="btn btn-cheio">Atualizar o Brasil</button></p>
+    </article>
+
+    <div class="grade-filtros bloco">
+      <label>UF
+        <select id="filtro-uf" class="campo">
+          <option value="">Escolha</option>
+        </select>
+      </label>
+      <label>Município
+        <input id="busca-mun" class="campo" type="search" placeholder="Nome" autocomplete="off">
+      </label>
+      <div>
+        <button id="ler-uf" type="button" class="btn" disabled>Ler os municípios desta UF</button>
+        <button id="parar-uf" type="button" class="btn escondido">Parar</button>
+      </div>
+    </div>
+    <ul id="busca-resultado" class="busca-lista"></ul>
+    <p class="miudo espaco" id="nota-uf">A leitura de uma UF inteira só libera quando o arquivo nacional tiver seção totalizada.</p>
+    <p class="espaco" id="status-uf"></p>
+    <p class="miudo" id="progresso"></p>
+
+    <article class="cartao bloco" id="ficha-mun">
+      <p class="rotulo">Município</p>
+      <div class="espaco" id="ficha-base">Busque um nome ou escolha uma UF. O 1º turno mostrado aqui já está apurado na base local. O 2º turno vem do arquivo ao vivo.</div>
+      <div id="ficha-vivo"></div>
+    </article>
+
+    <div class="tabela-wrap bloco">
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Município</th>
+            <th class="num">Lula, 1º turno</th>
+            <th class="num">Flávio, 1º turno</th>
+            <th class="num">Válidos, 1º turno</th>
+            <th>2º turno no TSE</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-mun"></tbody>
+      </table>
+    </div>
+    <p id="tabela-vazia" class="espaco">Escolha uma UF para listar os municípios. A busca encontra qualquer um dos 5.571.</p>
+  </main>
+  <footer class="rodape">
+    <div class="miolo">
+      <div class="rodape-faixa">
+        <img class="wordmark-rodape" src="marca/wordmark-op2-transparente-branco.svg" alt="derossi.dev">
+        <img class="icone-d" src="marca/avatar-d-barra-transparente-branco.svg" alt="">
+      </div>
+      <p class="direitos">Copyright 2026 derossi.dev - Todos os direitos reservados</p>
+      <p class="fontes">Fonte ao vivo: resultados.tse.jus.br, eleição 6258, arquivos -u.json. O 1º turno é a base já apurada, sem o exterior. Não é apoio a candidato ou partido.</p>
+    </div>
+  </footer>
+  <script src="comum.js"></script>
+  <script src="apuracao.js"></script>
+  <script type="module" src="cena.js"></script>
+</body>
+</html>

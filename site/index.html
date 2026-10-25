@@ -3,208 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Eleições 2026 — dados</title>
+  <title>Estimativa · derossi.dev</title>
+  <script>
+    const destinos = { "#mapa": "mapa.html", "#deputados": "deputados.html", "#metodo": "metodo.html", "#apuracao": "apuracao.html" };
+    if (destinos[location.hash]) location.replace(destinos[location.hash]);
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            paper: "#faf9f7",
-            subtle: "#f0ede6",
-            muted: "#e2ddd4",
-            ink: "#141210",
-            soft: "#413e39",
-            faint: "#605c54",
-            line: "#cbc6bb",
-            pt: "#E04B4B",
-            pl: "#2F6FED"
-          },
-          fontFamily: {
-            display: ["Playfair Display", "Georgia", "serif"],
-            body: ["Lora", "Georgia", "serif"]
-          },
-          borderRadius: { sm: "3px" },
-          boxShadow: { card: "0 1px 3px rgba(10,9,8,.08), 0 1px 2px rgba(10,9,8,.04)" }
-        }
-      }
-    };
-  </script>
-  <style>
-    :root { color-scheme: light; }
-    html { scroll-behavior: smooth; }
-    body { background: #faf9f7; color: #141210; }
-    section { scroll-margin-top: 5.5rem; }
-    :focus-visible { outline: 2px solid #141210; outline-offset: 3px; }
-    .mapa { height: 70vh; min-height: 420px; background: #e2ddd4; }
-    .leaflet-container { font-family: Lora, Georgia, serif; background: #e2ddd4; }
-    .num { font-variant-numeric: tabular-nums; }
-    table th { font-family: Lora, Georgia, serif; letter-spacing: .06em; text-transform: uppercase; font-size: 11px; font-weight: 600; }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+ExtraCondensed:ital,wght@1,900&family=Inter:wght@400;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="marca.css">
 </head>
-<body class="font-body text-ink antialiased">
-  <header class="sticky top-0 z-30 border-b border-line bg-paper/95 backdrop-blur">
-    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-      <a href="#inicio" class="font-display text-lg leading-none">Eleições 2026</a>
-      <nav class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-soft" aria-label="Seções">
-        <a href="#inicio" class="hover:text-ink">Estimativa</a>
-        <a href="#mapa" class="hover:text-ink">Mapa</a>
-        <a href="#deputados" class="hover:text-ink">Deputados</a>
-        <a href="#metodo" class="hover:text-ink">Metodologia</a>
+<body>
+  <header class="topo">
+    <div class="cabecalho">
+      <a href="index.html"><img class="wordmark" src="marca/wordmark-op2-transparente-roxo.svg" alt="derossi.dev"></a>
+      <nav class="nav" aria-label="Páginas">
+        <a href="index.html" aria-current="page">Estimativa</a>
+        <a href="mapa.html">Mapa</a>
+        <a href="apuracao.html">Apuração</a>
+        <a href="deputados.html">Deputados</a>
+        <a href="metodo.html">Metodologia</a>
       </nav>
     </div>
   </header>
-
-  <main class="mx-auto max-w-6xl px-4 pb-20">
-    <section id="inicio" class="pt-10">
-      <p class="text-xs uppercase tracking-widest text-faint">2º turno · referência 25 de outubro de 2026</p>
-      <h1 class="mt-3 max-w-3xl font-display text-4xl leading-tight sm:text-5xl">Estimativa de pesquisas, não apuração.</h1>
-      <p id="aviso-pred" class="mt-4 max-w-2xl text-soft">Carregando os números publicados pelo pipeline.</p>
-
-      <div class="mt-8 grid gap-4 sm:grid-cols-3">
-        <article class="rounded-sm border border-line bg-white p-5 shadow-card">
-          <p class="text-xs uppercase tracking-widest text-faint">Média, votos válidos</p>
-          <p class="mt-3 font-display text-3xl num text-pl"><span id="pct-flavio">—</span> <span class="text-base text-soft">Flávio</span></p>
-          <p class="mt-1 font-display text-3xl num text-pt"><span id="pct-lula">—</span> <span class="text-base text-soft">Lula</span></p>
-        </article>
-        <article class="rounded-sm border border-line bg-white p-5 shadow-card">
-          <p class="text-xs uppercase tracking-widest text-faint">Chance estimada</p>
-          <p class="mt-3 font-display text-3xl num">Flávio <span id="prob-flavio">—</span></p>
-          <p class="mt-1 text-soft num">Lula <span id="prob-lula">—</span></p>
-          <p class="mt-3 text-sm text-faint">Com erro de eleição de 2 pontos, além da margem de cada pesquisa.</p>
-        </article>
-        <article class="rounded-sm border border-line bg-white p-5 shadow-card">
-          <p class="text-xs uppercase tracking-widest text-faint">Intervalo de Flávio</p>
-          <p class="mt-3 font-display text-3xl num" id="intervalo">—</p>
-          <p class="mt-3 text-sm text-faint" id="sensibilidade">Sensibilidade em 1,5 e 3 pontos aparece depois do carregamento.</p>
-        </article>
+  <main class="miolo">
+    <div class="grade-hero">
+      <div>
+        <p class="kicker">2º turno · referência 25 de outubro de 2026</p>
+        <h1 class="titulo">Estimativa de pesquisas, não apuração.</h1>
+        <p class="lede" id="aviso-pred">Carregando os números publicados pelo pipeline.</p>
       </div>
+      <div class="palco"><canvas id="cena" data-cena="estimativa" data-estado="iniciando" aria-hidden="true"></canvas></div>
+    </div>
 
-      <div class="mt-6 rounded-sm border border-line bg-subtle px-5 py-4 text-sm text-soft" id="aviso-2t">
-        O 2º turno ainda não entra no mapa. O arquivo nacional do TSE estava com zero seções totalizadas.
-      </div>
+    <div class="grade-3 bloco">
+      <article class="cartao">
+        <p class="rotulo">Média, votos válidos</p>
+        <p class="grande num"><span id="pct-flavio">—</span> Flávio</p>
+        <p class="grande num"><span id="pct-lula">—</span> Lula</p>
+      </article>
+      <article class="cartao">
+        <p class="rotulo">Chance estimada</p>
+        <p class="grande num">Flávio <span id="prob-flavio">—</span></p>
+        <p class="miudo num">Lula <span id="prob-lula">—</span></p>
+        <p class="miudo">Com erro de eleição de 2 pontos, além da margem de cada pesquisa. Previsão não é certeza.</p>
+      </article>
+      <article class="cartao">
+        <p class="rotulo">Intervalo de Flávio</p>
+        <p class="grande num" id="intervalo">—</p>
+        <p class="miudo" id="sensibilidade">Sensibilidade em 1,5 e 3 pontos aparece depois do carregamento.</p>
+      </article>
+    </div>
 
-      <h2 class="mt-12 font-display text-2xl">As 16 pesquisas da média</h2>
-      <p class="mt-2 max-w-2xl text-sm text-soft">Cada barra é a fatia de votos válidos. O peso à direita já desconta a margem e a idade do campo até 25/10.</p>
-      <div id="lista-pesquisas" class="mt-6 space-y-3"></div>
+    <div class="aviso bloco">
+      <p id="aviso-2t">O carimbo gravado pelo pipeline aparece aqui. A leitura ao vivo está na página de apuração.</p>
+      <p class="espaco"><a href="apuracao.html">Abrir a apuração por município</a></p>
+    </div>
 
-      <h2 class="mt-12 font-display text-2xl">1º turno já apurado</h2>
-      <p class="mt-2 max-w-2xl text-sm text-soft">Isto é voto de 4 de outubro, município a município, sem o exterior. Não é a estimativa do 2º turno.</p>
-      <div class="mt-6 grid gap-4 sm:grid-cols-3">
-        <article class="rounded-sm border border-line p-5">
-          <p class="text-xs uppercase tracking-widest text-faint">Flávio</p>
-          <p class="mt-2 font-display text-3xl num text-pl" id="t1-flavio">—</p>
-          <p class="text-sm text-soft num" id="t1-flavio-votos"></p>
-        </article>
-        <article class="rounded-sm border border-line p-5">
-          <p class="text-xs uppercase tracking-widest text-faint">Lula</p>
-          <p class="mt-2 font-display text-3xl num text-pt" id="t1-lula">—</p>
-          <p class="text-sm text-soft num" id="t1-lula-votos"></p>
-        </article>
-        <article class="rounded-sm border border-line p-5">
-          <p class="text-xs uppercase tracking-widest text-faint">Votos válidos</p>
-          <p class="mt-2 font-display text-3xl num" id="t1-validos">—</p>
-          <p class="text-sm text-soft" id="t1-mun">5.571 municípios</p>
-        </article>
-      </div>
-      <p class="mt-8 text-xs uppercase tracking-widest text-faint">Margem de Flávio sobre Lula no 1º turno, em pontos, por UF</p>
-      <div id="barras-uf" class="mt-3 space-y-1"></div>
+    <section class="bloco">
+      <h2 class="titulo">As 16 pesquisas da média</h2>
+      <p class="lede">Cada barra reparte a fatia dos dois nomes. A parte clara é Lula e a parte roxa é Flávio. O peso à direita já desconta a margem e a idade do campo até 25/10.</p>
+      <div id="lista-pesquisas" class="espaco" style="display:grid;gap:0.75rem"></div>
     </section>
 
-    <section id="mapa" class="pt-16">
-      <h2 class="font-display text-3xl">Mapa municipal</h2>
-      <p class="mt-2 max-w-2xl text-soft">Cor do vencedor entre os dois polos de cada disputa. Em 2026, Lula contra Flávio no 1º turno. Em 2022 e 2018, o 2º turno daquele ano.</p>
-      <div class="mt-6 grid gap-4 lg:grid-cols-[240px_1fr_280px]">
-        <div>
-          <div class="flex flex-col gap-2" role="group" aria-label="Camada do mapa">
-            <button type="button" data-camada="26" class="camada rounded-sm border border-ink bg-ink px-3 py-2 text-left text-sm text-paper">2026, 1º turno</button>
-            <button type="button" data-camada="22" class="camada rounded-sm border border-line bg-white px-3 py-2 text-left text-sm">2022, 2º turno</button>
-            <button type="button" data-camada="18" class="camada rounded-sm border border-line bg-white px-3 py-2 text-left text-sm">2018, 2º turno</button>
-          </div>
-          <label class="mt-6 block text-xs uppercase tracking-widest text-faint" for="busca-mun">Município</label>
-          <input id="busca-mun" class="mt-2 w-full rounded-sm border border-line bg-white px-3 py-2" type="search" placeholder="Nome ou UF" autocomplete="off">
-          <ul id="busca-resultado" class="mt-2 max-h-48 overflow-auto border border-transparent text-sm"></ul>
-          <ul class="mt-6 space-y-2 text-sm">
-            <li class="flex items-center gap-2"><span class="inline-block h-3 w-3 bg-pt"></span> Lula / Haddad</li>
-            <li class="flex items-center gap-2"><span class="inline-block h-3 w-3 bg-pl"></span> Flávio / Bolsonaro</li>
-            <li class="flex items-center gap-2"><span class="inline-block h-3 w-3" style="background:#B7B1A8"></span> Empate</li>
-            <li class="flex items-center gap-2"><span class="inline-block h-3 w-3 border border-line" style="background:#E6E2DA"></span> Sem dado</li>
-          </ul>
-        </div>
-        <div id="mapa-folha" class="mapa overflow-hidden rounded-sm border border-line" role="region" aria-label="Mapa do Brasil por município"></div>
-        <aside id="ficha" class="rounded-sm border border-line bg-white p-4 text-sm">
-          <p class="text-xs uppercase tracking-widest text-faint">Município</p>
-          <p class="mt-2 text-soft">Clique num município ou busque pelo nome.</p>
-        </aside>
+    <section class="bloco">
+      <h2 class="titulo">1º turno já apurado</h2>
+      <p class="lede">Isto é voto de 4 de outubro, município a município, sem o exterior. Não é a estimativa do 2º turno.</p>
+      <div class="grade-3 espaco">
+        <article class="cartao">
+          <p class="rotulo">Flávio</p>
+          <p class="grande num" id="t1-flavio">—</p>
+          <p class="miudo num" id="t1-flavio-votos"></p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo">Lula</p>
+          <p class="grande num" id="t1-lula">—</p>
+          <p class="miudo num" id="t1-lula-votos"></p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo">Votos válidos</p>
+          <p class="grande num" id="t1-validos">—</p>
+          <p class="miudo" id="t1-mun">5.571 municípios</p>
+        </article>
       </div>
-    </section>
-
-    <section id="deputados" class="pt-16">
-      <h2 class="font-display text-3xl">Deputado federal</h2>
-      <p id="dep-resumo" class="mt-2 max-w-2xl text-soft">Candidaturas deferidas, inclusive deferido com recurso. Votos nominais do 1º turno.</p>
-      <div class="mt-6 grid gap-3 sm:grid-cols-4">
-        <label class="text-sm">Nome
-          <input id="filtro-nome" class="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2" type="search">
-        </label>
-        <label class="text-sm">UF
-          <select id="filtro-uf" class="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2"></select>
-        </label>
-        <label class="text-sm">Partido
-          <select id="filtro-partido" class="mt-1 w-full rounded-sm border border-line bg-white px-3 py-2"></select>
-        </label>
-        <label class="mt-6 flex items-center gap-2 text-sm">
-          <input id="filtro-eleito" type="checkbox"> Só eleitos
-        </label>
-      </div>
-      <div class="mt-4 flex items-center justify-between gap-3 text-sm">
-        <p id="dep-contagem" class="text-soft"></p>
-        <button id="baixar-csv" type="button" class="rounded-sm border border-line bg-white px-3 py-2 hover:bg-subtle">Baixar CSV do filtro</button>
-      </div>
-      <div class="mt-3 overflow-x-auto rounded-sm border border-line bg-white">
-        <table class="min-w-full text-left text-sm">
-          <thead class="border-b border-line bg-subtle text-faint">
-            <tr>
-              <th class="px-3 py-2">Candidato</th>
-              <th class="px-3 py-2">UF</th>
-              <th class="px-3 py-2">Partido</th>
-              <th class="px-3 py-2 text-right">Votos</th>
-              <th class="px-3 py-2">Eleito</th>
-              <th class="px-3 py-2">Quociente</th>
-              <th class="px-3 py-2">Experiência</th>
-            </tr>
-          </thead>
-          <tbody id="corpo-dep"></tbody>
-        </table>
-      </div>
-      <p id="dep-vazio" class="mt-3 hidden text-sm text-soft">Nenhuma candidatura com esse filtro.</p>
-      <div class="mt-4 flex gap-2">
-        <button id="pag-antes" type="button" class="rounded-sm border border-line bg-white px-3 py-2 text-sm disabled:opacity-40">Anterior</button>
-        <button id="pag-depois" type="button" class="rounded-sm border border-line bg-white px-3 py-2 text-sm disabled:opacity-40">Próxima</button>
-        <p id="pag-info" class="self-center text-sm text-faint"></p>
-      </div>
-    </section>
-
-    <section id="metodo" class="pt-16">
-      <h2 class="font-display text-3xl">Como a chance foi calculada</h2>
-      <div class="mt-4 max-w-3xl space-y-4 text-soft">
-        <p>A conta é pré-eleitoral, com data de referência em 25 de outubro de 2026. Ela não lê urna e não substitui a apuração.</p>
-        <p>Entra uma rodada por instituto, só quando o par de votos válidos está escrito na fonte. O peso segue Jackman (2005): mais precisão e campo mais recente pesam mais. A meia-vida é de 3 dias, contada do meio do campo até 25/10. Com uma rodada por casa, efeito de instituto não entra no peso.</p>
-        <p>A chance de vitória segue Shirani-Mehr, Rothschild, Goel e Gelman (2018, JASA). A margem publicada encolhe quando as pesquisas são juntadas. O erro comum de eleição, não. No cenário principal esse erro é de 2 pontos percentuais. 1,5 e 3 pontos são só sensibilidade. Não é um erro reestimado para o Brasil em 2026.</p>
-        <p>A probabilidade é a de uma normal: Flávio acima de 50% dos votos válidos. O intervalo de 95% usa o mesmo desvio.</p>
-        <p id="metodo-exclusoes"></p>
-      </div>
-      <div id="tabela-metodo" class="mt-8 overflow-x-auto"></div>
+      <p class="kicker espaco">Margem de Flávio sobre Lula no 1º turno, em pontos, por UF</p>
+      <div id="barras-uf" class="espaco"></div>
     </section>
   </main>
-
-  <footer class="border-t border-line px-4 py-8 text-center text-sm text-faint">
-    Fontes: TSE, dados abertos e pesquisas com registro. Os parquets analíticos continuam na pasta <span class="font-body">data/</span> do projeto.
+  <footer class="rodape">
+    <div class="miolo">
+      <div class="rodape-faixa">
+        <img class="wordmark-rodape" src="marca/wordmark-op2-transparente-branco.svg" alt="derossi.dev">
+        <img class="icone-d" src="marca/avatar-d-barra-transparente-branco.svg" alt="">
+      </div>
+      <p class="direitos">Copyright 2026 derossi.dev - Todos os direitos reservados</p>
+      <p class="fontes">Fontes: TSE, dados abertos e pesquisas com registro. A estimativa mostra método, margem e incerteza. Não é apoio a candidato ou partido.</p>
+    </div>
   </footer>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="app.js"></script>
+  <script src="comum.js"></script>
+  <script src="estimativa.js"></script>
+  <script type="module" src="cena.js"></script>
 </body>
 </html>

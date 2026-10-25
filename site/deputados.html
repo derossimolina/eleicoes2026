@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deputados · derossi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+ExtraCondensed:ital,wght@1,900&family=Inter:wght@400;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="marca.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="cabecalho">
+      <a href="index.html"><img class="wordmark" src="marca/wordmark-op2-transparente-roxo.svg" alt="derossi.dev"></a>
+      <nav class="nav" aria-label="Páginas">
+        <a href="index.html">Estimativa</a>
+        <a href="mapa.html">Mapa</a>
+        <a href="apuracao.html">Apuração</a>
+        <a href="deputados.html" aria-current="page">Deputados</a>
+        <a href="metodo.html">Metodologia</a>
+      </nav>
+    </div>
+  </header>
+  <main class="miolo">
+    <div class="grade-hero">
+      <div>
+        <p class="kicker">Câmara · 1º turno de 2026</p>
+        <h1 class="titulo">Deputado federal</h1>
+        <p class="lede" id="dep-resumo">Candidaturas deferidas, inclusive deferido com recurso. Votos nominais do 1º turno.</p>
+      </div>
+      <div class="palco"><canvas id="cena" data-cena="deputados" data-estado="iniciando" aria-hidden="true"></canvas></div>
+    </div>
+    <div class="grade-filtros bloco">
+      <label>Nome
+        <input id="filtro-nome" class="campo" type="search" autocomplete="off">
+      </label>
+      <label>UF
+        <select id="filtro-uf" class="campo"></select>
+      </label>
+      <label>Partido
+        <select id="filtro-partido" class="campo"></select>
+      </label>
+      <label class="check"><input id="filtro-eleito" type="checkbox"> Só eleitos</label>
+    </div>
+    <div class="linha-acoes espaco">
+      <p id="dep-contagem"></p>
+      <button id="baixar-csv" type="button" class="btn">Baixar CSV do filtro</button>
+    </div>
+    <div class="tabela-wrap espaco">
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Candidato</th>
+            <th>UF</th>
+            <th>Partido</th>
+            <th class="num">Votos</th>
+            <th>Eleito</th>
+            <th>Quociente</th>
+            <th>Experiência</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-dep"></tbody>
+      </table>
+    </div>
+    <p id="dep-vazio" class="escondido espaco">Nenhuma candidatura com esse filtro.</p>
+    <div class="linha-acoes espaco">
+      <button id="pag-antes" type="button" class="btn">Anterior</button>
+      <button id="pag-depois" type="button" class="btn">Próxima</button>
+      <p id="pag-info"></p>
+    </div>
+  </main>
+  <footer class="rodape">
+    <div class="miolo">
+      <div class="rodape-faixa">
+        <img class="wordmark-rodape" src="marca/wordmark-op2-transparente-branco.svg" alt="derossi.dev">
+        <img class="icone-d" src="marca/avatar-d-barra-transparente-branco.svg" alt="">
+      </div>
+      <p class="direitos">Copyright 2026 derossi.dev - Todos os direitos reservados</p>
+      <p class="fontes">Fonte: TSE, consulta de candidaturas e votação nominal. O filtro segue o julgamento deferido. Não é apoio a candidato ou partido.</p>
+    </div>
+  </footer>
+  <script src="comum.js"></script>
+  <script src="deputados.js"></script>
+  <script type="module" src="cena.js"></script>
+</body>
+</html>

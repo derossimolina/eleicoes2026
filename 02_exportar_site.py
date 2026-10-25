@@ -56,6 +56,25 @@ def arredondar_coords(coords):
     return [arredondar_coords(c) for c in coords]
 
 
+def exportar_indice(t1: pd.DataFrame) -> None:
+    """Lista enxuta para a página de apuração achar o código TSE do município."""
+    linhas = []
+    ordem = t1.sort_values(["sg_uf", "nm_municipio"])
+    for r in ordem.itertuples(index=False):
+        linhas.append({
+            "uf": r.sg_uf,
+            "cd": str(r.cd_municipio_tse).zfill(5),
+            "ibge": None if pd.isna(r.cd_ibge) else str(r.cd_ibge).zfill(7),
+            "nm": r.nm_municipio,
+            "l": inteiro(r.votos_lula),
+            "f": inteiro(r.votos_flavio),
+            "v": inteiro(r.votos_validos),
+        })
+    destino = OUT / "municipios.json"
+    destino.write_text(json.dumps(linhas, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"municipios.json {destino.stat().st_size / 1_048_576:.2f} MB ({len(linhas)})")
+
+
 def exportar() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     pred = json.loads((DATA / "prediction_inicial.json").read_text(encoding="utf-8"))
@@ -173,6 +192,7 @@ def exportar() -> None:
     tabela["nr_candidato"] = tabela["nr_candidato"].map(inteiro)
     tabela["n_candidatos_partido_uf"] = tabela["n_candidatos_partido_uf"].map(inteiro)
     (OUT / "deputados.json").write_text(tabela.to_json(orient="records", force_ascii=False), encoding="utf-8")
+    exportar_indice(t1)
 
     import geopandas as gpd
 
@@ -232,7 +252,7 @@ def exportar() -> None:
     print(f"features {len(features)}")
     print(f"deputados {len(tabela)}")
     print(f"1º turno válidos {int(validos)} flavio {resumo['primeiro_turno_2026']['pct_flavio']} lula {resumo['primeiro_turno_2026']['pct_lula']}")
-    for nome in ("resumo.json", "prediction.json", "deputados.json", "municipios.geojson"):
+    for nome in ("resumo.json", "prediction.json", "deputados.json", "municipios.json", "municipios.geojson"):
         caminho = OUT / nome
         print(f"{nome} {caminho.stat().st_size / 1_048_576:.2f} MB")
 
