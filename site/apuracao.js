@@ -32,10 +32,45 @@ function esperar(ms, signal) {
   });
 }
 
-async function lerTse(caminho, signal) {
-  const resposta = await fetch(caminho, { signal, cache: "no-store" });
-  if (!resposta.ok) throw new Error(caminho + " " + resposta.status);
+const TSE_DADOS = "https://resultados.tse.jus.br/oficial/ele2026/6258/dados";
+
+function urlOficial(caminho) {
+  const partes = String(caminho).split("/").filter(Boolean);
+  if (partes[0] !== "tse") return null;
+  if (partes.length === 2 && partes[1] === "br") {
+    return `${TSE_DADOS}/br/br-c0001-e006258-u.json`;
+  }
+  if (partes.length === 3 && partes[1] === "uf") {
+    const uf = partes[2].toLowerCase();
+    if (!UFS.includes(uf.toUpperCase())) return null;
+    return `${TSE_DADOS}/${uf}/${uf}-c0001-e006258-u.json`;
+  }
+  if (partes.length === 4 && partes[1] === "mun") {
+    const uf = partes[2].toLowerCase();
+    const cd = partes[3];
+    if (!UFS.includes(uf.toUpperCase()) || !/^\d{5}$/.test(cd)) return null;
+    return `${TSE_DADOS}/${uf}/${uf}${cd}-c0001-e006258-u.json`;
+  }
+  return null;
+}
+
+async function baixarJson(url, signal) {
+  const resposta = await fetch(url, { signal, cache: "no-store" });
+  if (!resposta.ok) throw new Error(resposta.status + " " + url);
   return resposta.json();
+}
+
+async function lerTse(caminho, signal) {
+  const oficial = urlOficial(caminho);
+  if (oficial) {
+    const vivo = oficial + "?nocache=" + Date.now();
+    try {
+      return await baixarJson(vivo, signal);
+    } catch (erro) {
+      if (erro && erro.name === "AbortError") throw erro;
+    }
+  }
+  return baixarJson(caminho, signal);
 }
 
 function lerCandidatos(dados) {

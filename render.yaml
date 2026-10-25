@@ -1,5 +1,5 @@
-# A apuração lê o TSE por /tse/, no mesmo domínio. Por isso o serviço é Python,
-# não um site estático: o navegador não acessa resultados.tse.jus.br direto.
+# A página lê o JSON do TSE no navegador. O CDN devolve o Origin de quem pede.
+# O app.py serve o site e o caminho /tse/ fica de reserva se essa leitura falhar.
 # O Render define PORT. O app.py escuta nele.
 services:
   - type: web

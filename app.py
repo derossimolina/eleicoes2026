@@ -1,7 +1,8 @@
-"""Sobe o site e o proxy do TSE.
+"""Sobe o site e, se o navegador não alcançar o TSE, o proxy /tse/.
 
-A pasta publicada é site/. Os arquivos /tse/ só encaminham o JSON oficial
-do 2º turno de 2026 (eleição 6258). Não é um proxy aberto.
+A pasta publicada é site/. A página pede primeiro o JSON oficial do 2º turno
+de 2026 (eleição 6258). Os arquivos /tse/ só encaminham esse mesmo JSON.
+Não é um proxy aberto.
 
 No Render, a variável PORT existe e o processo escuta em 0.0.0.0.
 Na máquina local, fica em http://127.0.0.1:8765/.
