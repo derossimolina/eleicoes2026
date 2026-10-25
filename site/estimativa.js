@@ -32,13 +32,6 @@ function pintarInicio(resumo, pred) {
     "Se o erro for 1,5 ponto, a chance de Flávio vai a " + Math.round(s["tau_1.5pp"] * 100) +
     "%. Com 3 pontos, fica em " + Math.round(s["tau_3.0pp"] * 100) + "%."
   );
-  const t2 = resumo.segundo_turno;
-  texto(
-    "aviso-2t",
-    "O pipeline gravou o arquivo nacional com " + fmt.format(t2.secoes_totalizadas) + " de " +
-    fmt.format(t2.secoes_totais) + " seções, carimbo " + t2.carimbo_tse +
-    ". Esse carimbo pode estar atrasado. A página Apuração lê o TSE de novo."
-  );
   const t1 = resumo.primeiro_turno_2026;
   texto("t1-flavio", pct(t1.pct_flavio));
   texto("t1-lula", pct(t1.pct_lula));

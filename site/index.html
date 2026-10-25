@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Estimativa · derossi.dev</title>
+  <title>Eleições 2026 - Previsão e Apuração</title>
   <script>
     const destinos = { "#mapa": "mapa.html", "#deputados": "deputados.html", "#metodo": "metodo.html", "#apuracao": "apuracao.html" };
     if (destinos[location.hash]) location.replace(destinos[location.hash]);
@@ -30,7 +30,7 @@
     <div class="grade-hero">
       <div>
         <p class="kicker">2º turno · referência 25 de outubro de 2026</p>
-        <h1 class="titulo">Estimativa de pesquisas, não apuração.</h1>
+        <h1 class="titulo">Eleições 2026 - Previsão e Apuração</h1>
         <p class="lede" id="aviso-pred">Carregando os números publicados pelo pipeline.</p>
       </div>
       <div class="palco"><canvas id="cena" data-cena="estimativa" data-estado="iniciando" aria-hidden="true"></canvas></div>
@@ -55,10 +55,50 @@
       </article>
     </div>
 
-    <div class="aviso bloco">
-      <p id="aviso-2t">O carimbo gravado pelo pipeline aparece aqui. A leitura ao vivo está na página de apuração.</p>
+    <section class="bloco" aria-live="polite">
+      <h2 class="titulo">Totalização nacional</h2>
+      <p class="lede" id="status-nacional">Consultando o arquivo nacional do TSE.</p>
+      <div class="grade-3 espaco">
+        <article class="cartao">
+          <p class="rotulo">Seções totalizadas</p>
+          <p class="grande num" id="nac-secoes">—</p>
+          <p class="miudo" id="nac-pct-secoes"></p>
+          <div class="barra espaco" id="nac-barra-secoes"></div>
+        </article>
+        <article class="cartao">
+          <p class="rotulo" id="nac-rotulo-lula">Lula</p>
+          <p class="grande num" id="nac-lula">—</p>
+          <p class="miudo num" id="nac-lula-votos"></p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo" id="nac-rotulo-flavio">Flávio</p>
+          <p class="grande num" id="nac-flavio">—</p>
+          <p class="miudo num" id="nac-flavio-votos"></p>
+        </article>
+      </div>
+      <div class="grade-3 espaco">
+        <article class="cartao">
+          <p class="rotulo">Votos válidos</p>
+          <p class="grande num" id="nac-validos">—</p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo">Brancos</p>
+          <p class="grande num" id="nac-brancos">—</p>
+          <p class="miudo" id="nac-nulos"></p>
+        </article>
+        <article class="cartao">
+          <p class="rotulo">Comparecimento</p>
+          <p class="grande num" id="nac-comparecimento">—</p>
+        </article>
+      </div>
+      <div class="barra espaco escondido" id="nac-barra-votos"></div>
+      <p class="miudo escondido" id="nac-legenda-votos">Parte clara: Lula. Parte roxa: Flávio. A barra usa só os votos dos dois, entre os válidos.</p>
+      <p class="miudo espaco" id="nac-atualizado"></p>
+      <p class="miudo" id="carimbo-pipeline"></p>
+      <p class="espaco"><button id="atualizar-br" type="button" class="btn btn-cheio">Atualizar o Brasil</button></p>
+      <p class="miudo">A página relê o arquivo nacional a cada 2 minutos, com a aba visível. O botão lê na hora.</p>
       <p class="espaco"><a href="apuracao.html">Abrir a apuração por município</a></p>
-    </div>
+    </section>
 
     <section class="bloco">
       <h2 class="titulo">As 16 pesquisas da média</h2>
@@ -101,6 +141,7 @@
     </div>
   </footer>
   <script src="comum.js"></script>
+  <script src="apuracao.js"></script>
   <script src="estimativa.js"></script>
   <script type="module" src="cena.js"></script>
 </body>

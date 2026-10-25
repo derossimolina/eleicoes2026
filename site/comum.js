@@ -46,6 +46,35 @@ function esc(valor) {
   }[c]));
 }
 
+function centesimos(valor) {
+  if (valor == null || valor === "") return null;
+  const bruto = String(valor).trim().replace("%", "");
+  if (!bruto || bruto === "—") return null;
+  const negativo = bruto.startsWith("-");
+  const corpo = bruto.replace(/^-/, "").trim();
+  let esq;
+  let dir;
+  if (corpo.includes(",")) {
+    [esq, dir = ""] = corpo.replace(/\./g, "").split(",");
+  } else {
+    [esq, dir = ""] = corpo.split(".");
+  }
+  if (!/^\d+$/.test(esq || "0") || (dir && !/^\d+$/.test(dir))) return null;
+  const frac = (dir + "00").slice(0, 2);
+  const total = Number(esq || "0") * 100 + Number(frac);
+  return negativo ? -total : total;
+}
+
+function casas2(valor) {
+  const cents = centesimos(valor);
+  if (cents == null) return "—";
+  const negativo = cents < 0;
+  const abs = Math.abs(cents);
+  const inteiro = Math.trunc(abs / 100);
+  const frac = String(abs % 100).padStart(2, "0");
+  return (negativo ? "-" : "") + inteiro.toLocaleString("pt-BR") + "," + frac + "%";
+}
+
 const prefereMenosMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function animarBarras(raiz) {

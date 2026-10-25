@@ -49,6 +49,7 @@ function lerCandidatos(dados) {
             nome: cand.nmu || cand.nm || "",
             votos: intBr(cand.vap),
             partido: par.sg || "",
+            percentual: cand.pvap,
           };
         }
       }
@@ -69,6 +70,7 @@ function resumir(dados) {
     st,
     ts,
     pst,
+    pstTexto: s.pst == null || s.pst === "" ? null : String(s.pst),
     apurado: st > 0,
     fracao: pst != null ? pst / 100 : (ts ? st / ts : 0),
   };
@@ -84,17 +86,21 @@ function resumir(dados) {
 }
 
 function fraseSecoes(r) {
-  const pctSecoes = r.pst == null ? "—" : pct1(r.pst);
+  const pctSecoes = r.pstTexto == null ? "—" : casas2(r.pstTexto);
   return `Carimbo ${r.carimbo || "—"}. Seções totalizadas: ${fmt.format(r.st)} de ${fmt.format(r.ts)} (${pctSecoes}). Totalização encerrada: ${r.tf === "s" ? "sim" : "não"}.`;
+}
+
+function pctCandidato(cand, votos, validos) {
+  if (cand && cand.percentual != null && cand.percentual !== "") return casas2(cand.percentual);
+  if (!validos) return "—";
+  return casas2((100 * votos) / validos);
 }
 
 function fraseVotos(r) {
   if (!r.apurado) {
     return " Ainda sem apuração. Os zeros do arquivo não entram como voto.";
   }
-  const vl = r.vv ? (100 * r.lula.votos) / r.vv : null;
-  const vf = r.vv ? (100 * r.flavio.votos) / r.vv : null;
-  return ` ${r.lula.nome} ${fmt.format(r.lula.votos)} (${pct(vl)}). ${r.flavio.nome} ${fmt.format(r.flavio.votos)} (${pct(vf)}). Válidos ${fmt.format(r.vv)}. Brancos ${fmt.format(r.vb)}. Nulos ${fmt.format(r.vn)}. Comparecimento ${fmt.format(r.tv)}.`;
+  return ` ${r.lula.nome} ${fmt.format(r.lula.votos)} (${pctCandidato(r.lula, r.lula.votos, r.vv)}). ${r.flavio.nome} ${fmt.format(r.flavio.votos)} (${pctCandidato(r.flavio, r.flavio.votos, r.vv)}). Válidos ${fmt.format(r.vv)}. Brancos ${fmt.format(r.vb)}. Nulos ${fmt.format(r.vn)}. Comparecimento ${fmt.format(r.tv)}.`;
 }
 
 function horaLocal(ms) {
@@ -131,7 +137,7 @@ function pintarNacional(r) {
     `Arquivo nacional do TSE, com o exterior quando ele entra nessa soma. ${fraseSecoes(r)}${fraseVotos(r)} Fonte: ${URL_BR}.`
   );
   texto("nac-secoes", `${fmt.format(r.st)} de ${fmt.format(r.ts)}`);
-  texto("nac-pct-secoes", r.pst == null ? "" : `${pct1(r.pst)} das seções`);
+  texto("nac-pct-secoes", r.pstTexto == null ? "" : `${casas2(r.pstTexto)} das seções`);
   const pctSecoes = r.pst == null ? 0 : Math.min(100, Math.max(0, r.pst));
   document.getElementById("nac-barra-secoes").innerHTML = `<span class="fatia-escura" style="width:${pctSecoes}%"></span>`;
   if (!r.apurado) {
@@ -139,13 +145,11 @@ function pintarNacional(r) {
     texto("nac-rotulo-flavio", "Flávio");
     semApuracaoNacional();
   } else {
-    const vl = r.vv ? (100 * r.lula.votos) / r.vv : null;
-    const vf = r.vv ? (100 * r.flavio.votos) / r.vv : null;
     texto("nac-rotulo-lula", r.lula.nome || "Lula");
     texto("nac-rotulo-flavio", r.flavio.nome || "Flávio");
-    texto("nac-lula", pct(vl));
+    texto("nac-lula", pctCandidato(r.lula, r.lula.votos, r.vv));
     texto("nac-lula-votos", `${fmt.format(r.lula.votos)} votos`);
-    texto("nac-flavio", pct(vf));
+    texto("nac-flavio", pctCandidato(r.flavio, r.flavio.votos, r.vv));
     texto("nac-flavio-votos", `${fmt.format(r.flavio.votos)} votos`);
     texto("nac-validos", fmt.format(r.vv));
     texto("nac-brancos", fmt.format(r.vb));
@@ -178,6 +182,7 @@ function pintarCobertura(r) {
 
 function liberarUf() {
   const botao = document.getElementById("ler-uf");
+  if (!botao) return;
   const pode = Boolean(estado.uf && estado.nacional && estado.nacional.apurado && !estado.controle);
   botao.disabled = !pode;
   texto(
@@ -253,7 +258,7 @@ function pintarFicha(m) {
   const base = document.getElementById("ficha-base");
   base.innerHTML = `<h2 class="titulo" style="font-size:2.4rem">${esc(m.nm)}</h2>
     <p class="miudo espaco">Código TSE ${esc(m.cd)}. IBGE ${esc(m.ibge || "—")}.</p>
-    <p class="espaco">1º turno de 4 de outubro, base já apurada, sem exterior. Lula ${m.l == null ? "—" : fmt.format(m.l)} (${pct(lula)}). Flávio ${m.f == null ? "—" : fmt.format(m.f)} (${pct(flavio)}). Válidos ${m.v == null ? "—" : fmt.format(m.v)}.</p>`;
+    <p class="espaco">1º turno de 4 de outubro, base já apurada, sem exterior. Lula ${m.l == null ? "—" : fmt.format(m.l)} (${casas2(lula)}). Flávio ${m.f == null ? "—" : fmt.format(m.f)} (${casas2(flavio)}). Válidos ${m.v == null ? "—" : fmt.format(m.v)}.</p>`;
 }
 
 function pintarVivo(m, r) {
@@ -266,12 +271,19 @@ function pintarVivo(m, r) {
   const f1 = fatia(m.f, m.v);
   const l2 = r.vv ? (100 * r.lula.votos) / r.vv : null;
   const f2 = r.vv ? (100 * r.flavio.votos) / r.vv : null;
-  const delta = (a, b) => (a == null || b == null) ? "—" : ((a - b) >= 0 ? "+" : "") + (a - b).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const delta = (a, b) => {
+    const ca = centesimos(a);
+    const cb = centesimos(b);
+    if (ca == null || cb == null) return "—";
+    const d = ca - cb;
+    const texto = casas2(d / 100).replace("%", "");
+    return (d > 0 ? "+" : "") + texto;
+  };
   caixa.innerHTML = `<p class="espaco">2º turno ao vivo. ${esc(fraseSecoes(r))}</p>
-    <p class="grande num espaco">${esc(r.lula.nome)} ${fmt.format(r.lula.votos)} <span class="miudo">(${pct(l2)})</span></p>
-    <p class="grande num">${esc(r.flavio.nome)} ${fmt.format(r.flavio.votos)} <span class="miudo">(${pct(f2)})</span></p>
+    <p class="grande num espaco">${esc(r.lula.nome)} ${fmt.format(r.lula.votos)} <span class="miudo">(${pctCandidato(r.lula, r.lula.votos, r.vv)})</span></p>
+    <p class="grande num">${esc(r.flavio.nome)} ${fmt.format(r.flavio.votos)} <span class="miudo">(${pctCandidato(r.flavio, r.flavio.votos, r.vv)})</span></p>
     <p class="espaco">Válidos ${fmt.format(r.vv)}. Brancos ${fmt.format(r.vb)}. Nulos ${fmt.format(r.vn)}. Comparecimento ${fmt.format(r.tv)}.</p>
-    <p class="miudo">Diferença em pontos contra o 1º turno deste município: Lula ${delta(l2, l1)}, Flávio ${delta(f2, f1)}.</p>`;
+    <p class="miudo">Diferença em pontos contra o 1º turno deste município: Lula ${delta(r.lula.percentual ?? l2, l1)}, Flávio ${delta(r.flavio.percentual ?? f2, f1)}.</p>`;
 }
 
 async function abrirMunicipio(cd) {
@@ -414,6 +426,10 @@ async function carregar() {
     return;
   }
   await atualizarNacional();
+  agendarNacional();
+}
+
+function agendarNacional() {
   setInterval(() => {
     if (!document.hidden) atualizarNacional();
   }, INTERVALO_NACIONAL_MS);
@@ -423,4 +439,23 @@ async function carregar() {
   });
 }
 
-carregar();
+async function iniciarSoNacional() {
+  const botao = document.getElementById("atualizar-br");
+  if (botao) botao.addEventListener("click", atualizarNacional);
+  try {
+    const resumo = await lerJson("dados/resumo.json");
+    if (resumo && resumo.segundo_turno && document.getElementById("carimbo-pipeline")) {
+      texto(
+        "carimbo-pipeline",
+        "Último carimbo gravado pelo pipeline, que pode estar atrasado: " + resumo.segundo_turno.carimbo_tse + "."
+      );
+    }
+  } catch (erro) {
+    console.error(erro);
+  }
+  await atualizarNacional();
+  agendarNacional();
+}
+
+if (document.getElementById("filtro-uf")) carregar();
+else if (document.getElementById("nac-secoes")) iniciarSoNacional();
